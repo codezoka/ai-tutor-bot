@@ -1,0 +1,145 @@
+{
+  "business": {
+    "free": [
+      "What is the number one skill every entrepreneur must master?",
+      "How can I validate my business idea quickly with minimal risk?",
+      "What are the top 3 habits of high-performing business leaders?",
+      "How can I use AI to automate daily business tasks?",
+      "What mindset shift separates a startup founder from an employee?"
+    ],
+    "pro": [
+      "How can I design a scalable business model for long-term profit?",
+      "What systems can I automate to double efficiency?",
+      "How to use AI to predict customer needs and personalize offers?",
+      "What are the best metrics to measure team productivity?",
+      "How can storytelling increase brand loyalty?",
+      "What’s the best way to structure a business pitch deck?",
+      "How can I balance risk and growth when scaling?",
+      "What negotiation strategies lead to consistent wins?",
+      "What’s the secret to creating a product that sells itself?",
+      "How to lead a team through uncertain times?"
+    ],
+    "elite": {
+      "starter": [
+        "How do global market trends affect my niche?",
+        "How can I develop an elite network of mentors and investors?",
+        "What’s the psychology behind consumer buying behavior?",
+        "How can I identify new business opportunities before others?",
+        "What do the world’s wealthiest founders focus on daily?",
+        "How can I create recurring revenue in any industry?",
+        "What’s the formula to turn ideas into scalable assets?",
+        "How do I build systems that generate wealth automatically?",
+        "What is the secret to maintaining long-term business relevance?",
+        "How do I attract top-tier talent aligned with my mission?"
+      ],
+      "profit": [
+        "How can I use data-driven marketing to triple conversions?",
+        "What’s the most effective pricing strategy for luxury services?",
+        "How can AI forecasting improve profit margins?",
+        "What’s the difference between a million-dollar and billion-dollar mindset?",
+        "How do I merge AI tools with customer experience for maximum ROI?",
+        "How can I predict financial trends using analytics?",
+        "What KPIs should I track to ensure exponential growth?",
+        "How can AI replace traditional consulting models?",
+        "How do I transition from self-employed to investor?",
+        "How to leverage high-ticket client acquisition through automation?"
+      ]
+    }
+  },
+
+  "crypto": {
+    "free": [
+      "What is cryptocurrency and how does it work?",
+      "How can I safely start investing in crypto?",
+      "What is blockchain and why does it matter?",
+      "What are the most common crypto scams to avoid?",
+      "How can I track crypto market trends effectively?"
+    ],
+    "pro": [
+      "What’s the best strategy for long-term crypto gains?",
+      "How do I build a diversified crypto portfolio?",
+      "What are stablecoins and when should I use them?",
+      "How does staking generate passive income?",
+      "What indicators help predict market reversals?",
+      "How can I use AI to analyze crypto sentiment?",
+      "What’s the best way to use DEXs safely?",
+      "What role does DeFi play in wealth building?",
+      "What’s the difference between tokens and coins?",
+      "How can I automate crypto trading strategies?"
+    ],
+    "elite": {
+      "starter": [
+        "How can I identify early blockchain opportunities?",
+        "What are Layer 2 solutions and why are they critical?",
+        "How do whales manipulate market psychology?",
+        "What’s the safest way to store crypto long-term?",
+        "How do institutional investors shape crypto cycles?",
+        "What metrics reveal undervalued altcoins?",
+        "What’s the link between regulation and market volatility?",
+        "How can I prepare for the next Bitcoin halving?",
+        "What is tokenomics and why does it drive value?",
+        "How can AI improve crypto market forecasting?"
+      ],
+      "profit": [
+        "How do I combine AI and quant trading to maximize profits?",
+        "What’s the best risk management model in high volatility markets?",
+        "How can I identify hidden gem projects before the crowd?",
+        "How do big funds hedge crypto exposure?",
+        "What’s the most profitable use of stablecoins in bear markets?",
+        "How can I leverage Web3 for passive income streams?",
+        "What’s the psychology of market euphoria?",
+        "How to develop a data-driven investment algorithm?",
+        "What’s the power of compounding in DeFi?",
+        "How do I transform crypto profits into long-term wealth?"
+      ]
+    }
+  },
+
+  "ai": {
+    "free": [
+      "What exactly is artificial intelligence?",
+      "How can AI help improve my productivity?",
+      "What’s the difference between AI, ML, and Deep Learning?",
+      "How do AI chatbots like ChatGPT actually work?",
+      "How can small businesses benefit from AI?"
+    ],
+    "pro": [
+      "What’s the best AI tool for automating marketing?",
+      "How can I train my own custom AI model?",
+      "What industries will AI disrupt next?",
+      "How can AI help me build digital assets faster?",
+      "What’s the ethical dilemma behind AI decisions?",
+      "How do prompts influence AI output quality?",
+      "What are the best AI business ideas for 2025?",
+      "How to combine AI and psychology for persuasion?",
+      "What’s the impact of AGI on entrepreneurship?",
+      "How do I future-proof my career using AI?"
+    ],
+    "elite": {
+      "starter": [
+        "How do neural networks simulate the human brain?",
+        "What are the most powerful open-source AI frameworks?",
+        "How can AI predict human behavior and trends?",
+        "What are the risks of AI-driven automation?",
+        "How can I build an AI startup with minimal capital?",
+        "What role will AI play in future education systems?",
+        "How can I fine-tune LLMs for specific industries?",
+        "What is reinforcement learning in simple terms?",
+        "How can I detect AI bias and reduce it?",
+        "What are the latest AI models revolutionizing 2025?"
+      ],
+      "profit": [
+        "How can AI automate entire businesses?",
+        "What’s the roadmap to building your own AI SaaS?",
+        "How can I monetize AI chatbots effectively?",
+        "How can predictive AI help forecast revenue?",
+        "What’s the future of AI investing?",
+        "How do I build a system where AI makes me money?",
+        "What’s the next trillion-dollar opportunity in AI?",
+        "How can I merge AI with crypto for new profits?",
+        "How do I build AI tools that attract investors?",
+        "How can I scale AI services globally using automation?"
+      ]
+    }
+  }
+}

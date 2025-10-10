@@ -1,0 +1,374 @@
+2025-10-10 03:05:05,086 - INFO - \U0001f916 AI Tutor Pro Bot is running...
+2025-10-10 03:10:12,875 - INFO - \U0001f916 AI Tutor Pro Bot is running...
+2025-10-10 03:10:13,147 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getMe "HTTP/1.1 200 OK"
+2025-10-10 03:10:13,195 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/deleteWebhook "HTTP/1.1 200 OK"
+2025-10-10 03:10:13,195 - INFO - Application started
+2025-10-10 03:10:23,394 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:10:29,076 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:10:29,307 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/sendMessage "HTTP/1.1 200 OK"
+2025-10-10 03:10:29,309 - INFO - User 5722976786 started bot.
+2025-10-10 03:10:37,942 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:10:48,066 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:10:58,134 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:11:08,254 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:11:18,393 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:11:28,524 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:11:38,671 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:11:48,741 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:11:58,848 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:12:09,080 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:12:19,146 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:12:29,192 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:12:31,603 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:12:31,780 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/sendMessage "HTTP/1.1 200 OK"
+2025-10-10 03:12:31,797 - INFO - User 5722976786 started bot.
+2025-10-10 03:12:41,747 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:12:51,885 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:13:02,023 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:13:03,759 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:13:06,016 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:13:06,197 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-10 03:13:06,281 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/editMessageText "HTTP/1.1 200 OK"
+2025-10-10 03:13:16,166 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:13:26,294 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:13:36,403 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:13:46,467 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:13:56,599 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:14:06,745 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:14:16,888 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:14:27,021 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:14:37,151 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:14:47,294 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:14:57,429 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:15:07,574 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:15:17,678 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:15:27,738 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:15:37,787 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:15:47,843 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:15:57,901 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:16:07,952 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:16:17,998 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:16:28,063 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:16:38,113 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:16:47,225 - INFO - \U0001f916 AI Tutor Pro Bot is running...
+2025-10-10 03:16:47,225 - ERROR - Error while calling `get_updates` one more time to mark all fetched updates as read: %s. Suppressing error to ensure graceful shutdown. When polling for updates is restarted, updates may be fetched again. Please adjust timeouts via `ApplicationBuilder` or the parameter `get_updates_request` of `Bot`.
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\User\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\User\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\ext\_updater.py", line 433, in _get_updates_cleanup
+    await self.bot.get_updates(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_httpxrequest.py", line 285, in do_request
+    raise TimedOut from err
+telegram.error.TimedOut: Timed out
+2025-10-10 03:16:47,433 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getMe "HTTP/1.1 200 OK"
+2025-10-10 03:16:47,497 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/deleteWebhook "HTTP/1.1 200 OK"
+2025-10-10 03:16:47,497 - INFO - Application started
+2025-10-10 03:16:57,037 - ERROR - Error while calling `get_updates` one more time to mark all fetched updates as read: %s. Suppressing error to ensure graceful shutdown. When polling for updates is restarted, updates may be fetched again. Please adjust timeouts via `ApplicationBuilder` or the parameter `get_updates_request` of `Bot`.
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\User\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\User\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\ext\_updater.py", line 433, in _get_updates_cleanup
+    await self.bot.get_updates(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_httpxrequest.py", line 285, in do_request
+    raise TimedOut from err
+telegram.error.TimedOut: Timed out
+2025-10-10 03:16:57,039 - INFO - Application is stopping. This might take a moment.
+2025-10-10 03:16:57,039 - INFO - Application.stop() complete
+2025-10-10 03:18:51,580 - INFO - \U0001f916 AI Tutor Pro Bot is running...
+2025-10-10 03:18:51,788 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getMe "HTTP/1.1 200 OK"
+2025-10-10 03:18:51,837 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/deleteWebhook "HTTP/1.1 200 OK"
+2025-10-10 03:18:51,837 - INFO - Application started
+2025-10-10 03:18:52,011 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:18:52,092 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/sendMessage "HTTP/1.1 200 OK"
+2025-10-10 03:18:52,092 - INFO - User 5722976786 started bot.
+2025-10-10 03:19:06,537 - INFO - \U0001f916 AI Tutor Pro Bot is running...
+2025-10-10 03:19:06,537 - ERROR - Error while calling `get_updates` one more time to mark all fetched updates as read: %s. Suppressing error to ensure graceful shutdown. When polling for updates is restarted, updates may be fetched again. Please adjust timeouts via `ApplicationBuilder` or the parameter `get_updates_request` of `Bot`.
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\User\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\User\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\ext\_updater.py", line 433, in _get_updates_cleanup
+    await self.bot.get_updates(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_httpxrequest.py", line 285, in do_request
+    raise TimedOut from err
+telegram.error.TimedOut: Timed out
+2025-10-10 03:19:06,713 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getMe "HTTP/1.1 200 OK"
+2025-10-10 03:19:06,760 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/deleteWebhook "HTTP/1.1 200 OK"
+2025-10-10 03:19:06,776 - INFO - Application started
+2025-10-10 03:19:16,937 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:19:26,990 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:19:37,047 - INFO - HTTP Request: POST https://api.telegram.org/bot8245924180:AAGfrDbrCOMxv2YhWWzbnn-dhoQX-RAQmBE/getUpdates "HTTP/1.1 200 OK"
+2025-10-10 03:19:49,554 - ERROR - Error while calling `get_updates` one more time to mark all fetched updates as read: %s. Suppressing error to ensure graceful shutdown. When polling for updates is restarted, updates may be fetched again. Please adjust timeouts via `ApplicationBuilder` or the parameter `get_updates_request` of `Bot`.
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\User\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\User\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\ext\_updater.py", line 433, in _get_updates_cleanup
+    await self.bot.get_updates(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+  File "C:\Users\User\Documents\ai_tutor_pro\.venv\lib\site-packages\telegram\request\_httpxrequest.py", line 285, in do_request
+    raise TimedOut from err
+telegram.error.TimedOut: Timed out
+2025-10-10 03:19:49,555 - INFO - Application is stopping. This might take a moment.
+2025-10-10 03:19:49,555 - INFO - Application.stop() complete
