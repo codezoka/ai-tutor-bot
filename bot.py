@@ -366,6 +366,7 @@ async def main():
     app.add_handler(CommandHandler("elitemind", chat))
     app.add_handler(CommandHandler("smartermind", chat))
     app.add_handler(CommandHandler("aiquestions", chat))
-    app.add_handler(CommandHandler("aichat",
+    app.add_handler(CommandHandler("aichat", chat))
+
 
 
