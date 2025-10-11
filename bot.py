@@ -21,7 +21,8 @@ PRO_YEARLY_URL = os.getenv("PRO_YEARLY_URL")
 ELITE_MONTHLY_URL = os.getenv("ELITE_MONTHLY_URL")
 ELITE_YEARLY_URL = os.getenv("ELITE_YEARLY_URL")
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+from openai import OpenAI
+client = OpenAI()
 
 # === Logging ===
 logging.basicConfig(
