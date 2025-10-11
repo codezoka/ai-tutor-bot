@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI Tutor Pro 🤖
 An AI-powered tutor chatbot for Telegram.  
 Covers Business, Crypto, and AI with Free, Pro, and Elite access tiers.
@@ -14,3 +15,6 @@ Covers Business, Crypto, and AI with Free, Pro, and Elite access tiers.
 /free – Ask basic questions  
 /ask – Pro/Elite advanced questions  
 /upgrade – Upgrade via CryptoBot
+=======
+# ai-tutor-bot
+>>>>>>> 6edb18f1aaad7a3a63fa44836488d8fb992c8de5
