@@ -160,11 +160,12 @@ async def main():
     print("✅ AI Tutor Pro is running...")
     await app.run_polling()
 
+import asyncio
+
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
-        print("Bot stopped.")
+    import nest_asyncio
+    nest_asyncio.apply()
+    asyncio.get_event_loop().run_until_complete(main())
 
 
 
