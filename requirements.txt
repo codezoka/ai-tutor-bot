@@ -1,8 +1,11 @@
-python-telegram-bot==21.1.1
+python-telegram-bot==20.6
+openai==1.37.1
+Flask==3.0.3
+nest_asyncio==1.6.0
 python-dotenv==1.0.1
-openai==1.35.10
-nest-asyncio==1.6.0
-APScheduler==3.10.4
+apscheduler==3.10.4
+sqlite3-binary
+
 
 
 
