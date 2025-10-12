@@ -4,7 +4,7 @@ Flask==3.0.3
 nest_asyncio==1.6.0
 python-dotenv==1.0.1
 apscheduler==3.10.4
-sqlite3-binary
+
 
 
 
