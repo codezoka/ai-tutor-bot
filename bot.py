@@ -1,9 +1,8 @@
 import os
 import logging
 import asyncio
-import threading
 from datetime import datetime
-from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from flask import Flask
 from dotenv import load_dotenv
 from telegram import (
@@ -35,16 +34,12 @@ ELITE_YEARLY_URL = "https://t.me/send?start=IVxMW0UNvl7d"
 # === AI Client ===
 client = OpenAI(api_key=OPENAI_KEY)
 
-# === Flask app (keeps DigitalOcean alive) ===
+# === Flask App ===
 flask_app = Flask(__name__)
 
 @flask_app.route("/")
 def home():
-    return "AI Tutor Bot is running."
-
-@flask_app.route("/ping")
-def ping():
-    return "OK", 200
+    return "✅ AI Tutor Pro is running fine."
 
 # === Logging ===
 logging.basicConfig(
@@ -53,10 +48,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# === User Data (basic in-memory storage) ===
+# === User Data (Simple Memory Store) ===
 user_data = {}
 
-# === Motivational Quotes ===
+# === Motivation Quotes ===
 MOTIVATIONAL_QUOTES = [
     "🌟 Success begins with the decision to try.",
     "🔥 Don’t watch the clock — do what it does: keep going.",
@@ -65,7 +60,7 @@ MOTIVATIONAL_QUOTES = [
     "✨ Learn fast. Think smart. Grow unstoppable."
 ]
 
-# === Command Handlers ===
+# === Bot Commands ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user.first_name
     text = (
@@ -104,14 +99,13 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(text, parse_mode="Markdown", disable_web_page_preview=True)
 
 async def upgrade(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = "💎 Choose your plan:"
     keyboard = [
         [InlineKeyboardButton("⚡ Pro – $9.99 /mo", url=PRO_MONTHLY_URL)],
         [InlineKeyboardButton("🔥 Elite – $29.99 /mo", url=ELITE_MONTHLY_URL)],
     ]
-    await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
+    await update.message.reply_text("💎 Choose your plan:", reply_markup=InlineKeyboardMarkup(keyboard))
 
-# === Questions Handler ===
+# === Questions ===
 async def questions(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("💼 Business", callback_data="cat_business")],
@@ -157,7 +151,7 @@ async def category_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text += f"{i}. {q}\n"
     await query.edit_message_text(text=text, parse_mode="Markdown")
 
-# === AI Chat Response ===
+# === AI Chat ===
 async def chat_with_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     message = update.message.text
@@ -184,18 +178,16 @@ async def chat_with_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(ai_reply)
 
 # === Motivation Job ===
-def send_daily_motivation(app):
-    async def _send():
-        for user_id in user_data.keys():
-            try:
-                quote = MOTIVATIONAL_QUOTES[datetime.now().day % len(MOTIVATIONAL_QUOTES)]
-                await app.bot.send_message(chat_id=user_id, text=f"🌅 Daily Motivation:\n\n{quote}")
-            except Exception:
-                continue
-    asyncio.run(_send())
+async def send_daily_motivation(app):
+    for user_id in user_data.keys():
+        try:
+            quote = MOTIVATIONAL_QUOTES[datetime.now().day % len(MOTIVATIONAL_QUOTES)]
+            await app.bot.send_message(chat_id=user_id, text=f"🌅 Daily Motivation:\n\n{quote}")
+        except Exception:
+            continue
 
-# === Main ===
-async def main():
+# === Run Bot ===
+async def run_bot():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
@@ -205,24 +197,17 @@ async def main():
     app.add_handler(CallbackQueryHandler(category_callback, pattern="^cat_"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat_with_ai))
 
-    # Daily motivation 9:00 AM
-    scheduler = BackgroundScheduler()
+    scheduler = AsyncIOScheduler()
     scheduler.add_job(send_daily_motivation, "cron", hour=9, args=[app])
     scheduler.start()
 
     print("✅ Bot connected successfully!")
     await app.run_polling()
 
-# === Gunicorn / DigitalOcean Safe Startup ===
-bot_started = False
-def start_bot_once():
-    global bot_started
-    if not bot_started:
-        bot_started = True
-        threading.Thread(target=lambda: asyncio.run(main()), daemon=True).start()
-        print("✅ Telegram bot thread started.")
-
+# === Start Flask + Bot ===
 if __name__ == "__main__":
-    start_bot_once()
+    loop = asyncio.get_event_loop()
+    loop.create_task(run_bot())
     flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
 
