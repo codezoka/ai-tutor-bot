@@ -249,8 +249,15 @@ async def main():
 # === Run Bot + Flask (DigitalOcean-ready) ===
 if __name__ == "__main__":
     nest_asyncio.apply()
-    loop = asyncio.get_event_loop()
-    loop.create_task(main())
+    import threading
+
+    # Run the Telegram bot in a separate thread
+    def run_telegram():
+        asyncio.run(main())
+
+    threading.Thread(target=run_telegram).start()
+
+    # Run Flask on the main thread
     flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
 
 
