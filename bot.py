@@ -246,18 +246,20 @@ async def main():
     print("✅ Bot connected successfully!")
     await app.run_polling()
 
-# === Run Bot + Flask (DigitalOcean-ready) ===
+# === Run Bot + Flask (DigitalOcean-ready, stable version) ===
+import threading
+import nest_asyncio
+import asyncio
+
+nest_asyncio.apply()
+
+def run_bot():
+    asyncio.run(main())
+
+# Run Telegram bot in a background thread
+bot_thread = threading.Thread(target=run_bot, daemon=True)
+bot_thread.start()
+
+# Start Flask app (keep-alive for DigitalOcean)
 if __name__ == "__main__":
-    nest_asyncio.apply()
-    import threading
-
-    # Run the Telegram bot in a separate thread
-    def run_telegram():
-        asyncio.run(main())
-
-    threading.Thread(target=run_telegram).start()
-
-    # Run Flask on the main thread
     flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
-
-
