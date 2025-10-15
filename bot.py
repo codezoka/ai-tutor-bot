@@ -246,20 +246,32 @@ async def main():
     print("✅ Bot connected successfully!")
     await app.run_polling()
 
-# === Run Bot + Flask (DigitalOcean-ready, stable version) ===
+# === Run Bot + Flask (DigitalOcean + Gunicorn SAFE) ===
 import threading
 import nest_asyncio
 import asyncio
 
 nest_asyncio.apply()
 
-def run_bot():
-    asyncio.run(main())
+bot_started = False  # prevents multiple starts in Gunicorn
 
-# Run Telegram bot in a background thread
-bot_thread = threading.Thread(target=run_bot, daemon=True)
-bot_thread.start()
 
-# Start Flask app (keep-alive for DigitalOcean)
+def start_bot_once():
+    global bot_started
+    if not bot_started:
+        bot_started = True
+        threading.Thread(target=lambda: asyncio.run(main()), daemon=True).start()
+        print("✅ Telegram bot started successfully!")
+    else:
+        print("⚠️ Bot already running — skipped duplicate startup")
+
+
+@flask_app.before_first_request
+def before_first_request_func():
+    start_bot_once()
+
+
 if __name__ == "__main__":
+    # Only runs locally, not when Gunicorn launches
+    start_bot_once()
     flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
