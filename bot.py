@@ -3,12 +3,9 @@ import logging
 import asyncio
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from telegram import (
-    Update,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup
-)
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
+    Application,
     ApplicationBuilder,
     CommandHandler,
     MessageHandler,
@@ -19,7 +16,7 @@ from telegram.ext import (
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# === Load .env variables ===
+# === Load .env ===
 load_dotenv()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_KEY = os.getenv("OPENAI_API_KEY")
@@ -30,14 +27,14 @@ PRO_YEARLY_URL = "https://t.me/send?start=IVRnAnXOWzRM"
 ELITE_MONTHLY_URL = "https://t.me/send?start=IVfwy1t6hcu9"
 ELITE_YEARLY_URL = "https://t.me/send?start=IVxMW0UNvl7d"
 
-# === Setup Logging ===
+# === Logging ===
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# === OpenAI client ===
+# === OpenAI Client ===
 client = OpenAI(api_key=OPENAI_KEY)
 user_data = {}
 
@@ -54,8 +51,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user.first_name
     text = (
         f"🤖 Welcome to AI Tutor Pro, {user}!\n\n"
-        "Ask smarter. Think sharper. Grow unstoppable.\n\n"
-        "💬 You can ask *your own questions* anytime or explore expert topics below.\n\n"
+        "Ask smarter. Think sharper. Every question gets you closer to success.\n\n"
+        "💬 You can ask *your own questions anytime* or explore expert topics below.\n\n"
         "Choose your plan to begin:"
     )
     keyboard = [
@@ -161,7 +158,7 @@ async def chat_with_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ai_reply = response.choices[0].message.content.strip()
     await update.message.reply_text(ai_reply)
 
-# === Motivation ===
+# === Daily Motivation ===
 async def send_daily_motivation(app):
     for user_id in user_data.keys():
         quote = MOTIVATIONAL_QUOTES[datetime.now().day % len(MOTIVATIONAL_QUOTES)]
@@ -170,8 +167,8 @@ async def send_daily_motivation(app):
         except Exception:
             continue
 
-# === Main Bot Runner ===
-async def main():
+# === Main App (no asyncio.run) ===
+def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
@@ -187,10 +184,9 @@ async def main():
     scheduler.start()
 
     logger.info("✅ Bot connected successfully! Running 24/7 on DigitalOcean Worker.")
-    await app.run_polling()
+    app.run_polling(stop_signals=None)
 
 if __name__ == "__main__":
-    asyncio.run(main())
-
+    main()
 
 
