@@ -87,24 +87,28 @@ def get_model(plan):
         return "gpt-4o"
     elif plan == "pro":
         return "gpt-4-turbo"
-    return "gpt-3.5-turbo-mini"
+    return "gpt-3.5-turbo"
 
 async def ai_reply(plan, category, question):
     model = get_model(plan)
     system = (
         f"You are AI Tutor Pro Bot, an intelligent mentor for {category}. "
-        "Respond with clarity, structure, and confidence. "
+        "Respond with clarity, structure, and actionable advice. "
         "Always end with: 💡 Ask Smart. Think Smart. — AI Tutor Pro Bot"
     )
-    response = await client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": question}
-        ],
-        max_tokens=600
-    )
-    return response.choices[0].message.content.strip()
+    try:
+        response = await client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": question}
+            ],
+            max_tokens=600
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print("❌ OpenAI Error:", e)
+        return "⚠️ AI is currently busy. Please try again shortly."
 
 def build_menu(buttons):
     return InlineKeyboardMarkup(
@@ -136,6 +140,7 @@ async def help_cmd(msg: Message):
         "• /questions – Explore categories\n"
         "• /upgrade – Unlock higher levels\n"
         "• /status – Check your usage\n\n"
+        "💬 You can also type your own questions anytime — AI Tutor Pro Bot will reply instantly!\n\n"
         "💡 Ask Smart. Think Smart."
     )
     await msg.answer(text)
@@ -182,6 +187,17 @@ async def questions_cmd(msg: Message):
     await msg.answer("📚 Choose your category:", reply_markup=kb)
 
 # === Callbacks ===
+@dp.callback_query(F.data == "questions")
+async def back_to_questions(call: CallbackQuery):
+    await call.message.edit_text(
+        "📚 Choose your category:",
+        reply_markup=build_menu([
+            ("🤖 AI", "free_ai"),
+            ("💼 Business", "free_business"),
+            ("💰 Crypto", "free_crypto")
+        ])
+    )
+
 @dp.callback_query(F.data.startswith("plan_"))
 async def plan_select(call: CallbackQuery):
     plan = call.data.split("_")[1]
@@ -190,7 +206,6 @@ async def plan_select(call: CallbackQuery):
     if user_plan == "free" and plan in ["pro", "elite"]:
         await call.message.answer("🔒 Upgrade to unlock this feature.\nGo to /upgrade 🚀")
         return
-
     kb = build_menu([
         ("🤖 AI Path", f"{plan}_ai"),
         ("💼 Business Path", f"{plan}_business"),
@@ -222,6 +237,9 @@ async def section_select(call: CallbackQuery):
         return
     content = PROMPTS.get(category, {}).get(plan, {}).get(section, {})
     questions = content.get("questions", [])
+    if not questions:
+        await call.message.answer("⚠️ No questions available in this section yet.")
+        return
     kb = build_menu([(f"{i+1}. {q}", f"ask_{plan}_{category}_{section}_{i}") for i, q in enumerate(questions)] + [("⬅️ Back", f"{plan}_{category}")])
     await call.message.edit_text("Choose a question below 👇", reply_markup=kb)
 
@@ -231,16 +249,16 @@ async def handle_question(call: CallbackQuery):
     idx = int(idx)
     content = PROMPTS.get(category, {}).get(plan, {}).get(section, {})
     questions = content.get("questions", [])
+    if idx >= len(questions):
+        await call.message.answer("⚠️ Question not found.")
+        return
     question = questions[idx]
-
     user = get_user(call.from_user.id, call.from_user.username)
     used = user[3 + ["ai", "business", "crypto"].index(category)]
     limit = get_limits(user[2])
-
     if used >= limit and user[2] == "free":
         await call.message.answer("⚠️ You’ve reached your free limit. Upgrade to unlock more 🚀")
         return
-
     update_usage(call.from_user.id, category)
     await call.message.answer("💭 Thinking...")
     answer = await ai_reply(plan, category, question)
@@ -253,11 +271,8 @@ async def handle_free_text(msg: Message):
     plan = user[2]
     question = msg.text
     await msg.answer("💬 Thinking...")
-    try:
-        answer = await ai_reply(plan, "general", question)
-        await msg.answer(answer)
-    except Exception as e:
-        await msg.answer("⚠️ Something went wrong. Please try again.")
+    answer = await ai_reply(plan, "general", question)
+    await msg.answer(answer)
 
 # === Motivation ===
 MOTIVATIONAL_QUOTES = [
