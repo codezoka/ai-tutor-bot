@@ -1,192 +1,220 @@
 import os
-import logging
+import json
 import asyncio
-from datetime import datetime
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+import logging
+import random
+from datetime import time
+
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Update,
+)
+from telegram.constants import ParseMode
 from telegram.ext import (
-    Application,
     ApplicationBuilder,
     CommandHandler,
-    MessageHandler,
     CallbackQueryHandler,
+    MessageHandler,
+    filters,
     ContextTypes,
-    filters
 )
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# === Load .env ===
+# --- Setup ---
 load_dotenv()
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-OPENAI_KEY = os.getenv("OPENAI_API_KEY")
-
-# === Payment Links ===
-PRO_MONTHLY_URL = "https://t.me/send?start=IVdixIeFSP3W"
-PRO_YEARLY_URL = "https://t.me/send?start=IVRnAnXOWzRM"
-ELITE_MONTHLY_URL = "https://t.me/send?start=IVfwy1t6hcu9"
-ELITE_YEARLY_URL = "https://t.me/send?start=IVxMW0UNvl7d"
-
-# === Logging ===
-logging.basicConfig(
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    level=logging.INFO
-)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# === OpenAI Client ===
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_KEY)
-user_data = {}
 
-# === Motivation Messages ===
-MOTIVATIONAL_QUOTES = [
-    "🌟 Success begins with the decision to try.",
-    "🔥 Don’t watch the clock — do what it does: keep going.",
-    "💡 Consistency beats intensity — small steps daily!",
-    "🚀 You are one smart move away from your next breakthrough."
-]
+PRO_MONTHLY = os.getenv("PRO_MONTHLY_URL")
+PRO_YEARLY = os.getenv("PRO_YEARLY_URL")
+ELITE_MONTHLY = os.getenv("ELITE_MONTHLY_URL")
+ELITE_YEARLY = os.getenv("ELITE_YEARLY_URL")
 
-# === Telegram Handlers ===
+# --- Question Bank ---
+QUESTIONS = {
+    "free": {
+        "AI": [
+            "What is Artificial Intelligence?",
+            "How can AI improve everyday life?",
+            "What are the main challenges of AI ethics?",
+            "How do neural networks learn?",
+            "What industries benefit most from AI?"
+        ],
+        "Business": [
+            "What makes a business idea successful?",
+            "How can entrepreneurs leverage AI tools?",
+            "What are key steps in building a strong brand?",
+            "How to attract investors effectively?",
+            "What strategies boost productivity?"
+        ],
+        "Crypto": [
+            "What is blockchain technology?",
+            "How does Bitcoin differ from Ethereum?",
+            "What are smart contracts used for?",
+            "How do I safely invest in crypto?",
+            "What role will crypto play in the future economy?"
+        ],
+    },
+    "pro": {
+        "AI": [f"Pro AI Q{i}" for i in range(1, 11)],
+        "Business": [f"Pro Business Q{i}" for i in range(1, 11)],
+        "Crypto": [f"Pro Crypto Q{i}" for i in range(1, 11)],
+    },
+    "elite": {
+        "AI": [f"Elite AI Q{i}" for i in range(1, 21)],
+        "Business": [f"Elite Business Q{i}" for i in range(1, 21)],
+        "Crypto": [f"Elite Crypto Q{i}" for i in range(1, 21)],
+    },
+}
+
+USER_PLANS = {}
+FREE_LIMIT = 5
+
+# --- Helper Functions ---
+def get_plan(user_id):
+    return USER_PLANS.get(user_id, "free")
+
+def reduce_free_limit(user_id):
+    if "free_uses" not in USER_PLANS:
+        USER_PLANS["free_uses"] = {}
+    USER_PLANS["free_uses"][user_id] = USER_PLANS["free_uses"].get(user_id, FREE_LIMIT) - 1
+
+def remaining_free(user_id):
+    return USER_PLANS.get("free_uses", {}).get(user_id, FREE_LIMIT)
+
+async def ask_ai(question: str) -> str:
+    try:
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": question}],
+        )
+        return completion.choices[0].message.content
+    except Exception as e:
+        logger.error(e)
+        return "⚠️ There was an issue with AI response."
+
+# --- Handlers ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user.first_name
     text = (
-        f"🤖 Welcome to AI Tutor Pro, {user}!\n\n"
-        "Ask smarter. Think sharper. Every question gets you closer to success.\n\n"
-        "💬 You can ask *your own questions anytime* or explore expert topics below.\n\n"
-        "Choose your plan to begin:"
+        "🤖 *Welcome to AI Tutor Pro!*\n\n"
+        "Ask smarter. Learn faster. Build success.\n"
+        "You can freely chat with AI anytime or explore our question sections.\n\n"
+        "💎 Upgrade to unlock advanced insights and exclusive lessons.\n\n"
+        "👇 Choose your level below:"
     )
     keyboard = [
-        [InlineKeyboardButton("🆓 Free", callback_data="free")],
-        [InlineKeyboardButton("⚡ Pro", callback_data="pro")],
-        [InlineKeyboardButton("🔥 Elite", callback_data="elite")]
+        [InlineKeyboardButton("🧠 Free", callback_data="menu_free")],
+        [InlineKeyboardButton("🚀 Pro", url=PRO_MONTHLY)],
+        [InlineKeyboardButton("👑 Elite", url=ELITE_MONTHLY)],
     ]
-    await update.message.reply_text(text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
+    await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
-        "📘 *How to Use AI Tutor Pro*\n\n"
-        "💬 Ask *any question* directly in chat — AI will respond instantly.\n"
-        "📚 Tap *Questions* to explore AI, Business, and Crypto topics.\n\n"
-        f"🚀 Want unlimited questions? [Upgrade to Pro]({PRO_MONTHLY_URL}) or [Elite]({ELITE_MONTHLY_URL})."
+        "🧭 *How to use AI Tutor Pro*\n\n"
+        "💬 Type any question directly — AI will respond instantly.\n"
+        "🎯 Or explore category questions from the *Questions* menu.\n"
+        "🚀 Upgrade to unlock deeper insights:\n"
+        f"[Upgrade to Pro]({PRO_MONTHLY}) | [Upgrade to Elite]({ELITE_MONTHLY})"
     )
-    await update.message.reply_text(text, parse_mode="Markdown", disable_web_page_preview=True)
+    await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
-async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    plan = user_data.get(user_id, {}).get("plan", "Free")
-    remaining = user_data.get(user_id, {}).get("remaining", 5)
-    text = (
-        f"📊 *Your Plan:* {plan}\n"
-        f"💡 *Questions left:* {remaining}\n\n"
-        f"Upgrade anytime:\n👉 [Upgrade Here]({PRO_MONTHLY_URL})"
-    )
-    await update.message.reply_text(text, parse_mode="Markdown", disable_web_page_preview=True)
-
-async def upgrade(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [InlineKeyboardButton("⚡ Pro – $9.99", url=PRO_MONTHLY_URL)],
-        [InlineKeyboardButton("🔥 Elite – $29.99", url=ELITE_MONTHLY_URL)]
+        [InlineKeyboardButton("💼 Business", callback_data="cat_Business")],
+        [InlineKeyboardButton("💰 Crypto", callback_data="cat_Crypto")],
+        [InlineKeyboardButton("🤖 AI", callback_data="cat_AI")],
     ]
-    await update.message.reply_text("💎 Choose your plan:", reply_markup=InlineKeyboardMarkup(keyboard))
+    await update.message.reply_text("📚 Choose a category:", reply_markup=InlineKeyboardMarkup(keyboard))
 
-async def questions(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [InlineKeyboardButton("💼 Business", callback_data="cat_business")],
-        [InlineKeyboardButton("💰 Crypto", callback_data="cat_crypto")],
-        [InlineKeyboardButton("🤖 AI", callback_data="cat_ai")]
-    ]
-    await update.message.reply_text("📚 Choose your category:", reply_markup=InlineKeyboardMarkup(keyboard))
-
-async def category_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def category(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+    _, cat = query.data.split("_")
+    plan = get_plan(query.from_user.id)
 
-    topics = {
-        "cat_business": [
-            "What are the fundamentals of building a profitable business?",
-            "How can small businesses use AI for growth?",
-            "What’s the most effective marketing strategy in 2025?"
-        ],
-        "cat_crypto": [
-            "What is blockchain and why is it important?",
-            "How can beginners start investing in crypto safely?",
-            "What’s the future of DeFi?"
-        ],
-        "cat_ai": [
-            "What are neural networks and how do they work?",
-            "How can AI improve productivity?",
-            "What are the top AI tools in 2025?"
-        ]
-    }
-
-    category = query.data
-    if category not in topics:
-        return
-
-    text = f"📘 *{category.split('_')[1].capitalize()} Questions:*\n\n"
-    for i, q in enumerate(topics[category], 1):
-        text += f"{i}. {q}\n"
-    await query.edit_message_text(text=text, parse_mode="Markdown")
-
-async def chat_with_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    message = update.message.text
-
-    if user_id not in user_data:
-        user_data[user_id] = {"plan": "Free", "remaining": 5}
-
-    plan = user_data[user_id]["plan"]
-    remaining = user_data[user_id]["remaining"]
-
-    if plan == "Free" and remaining <= 0:
-        await update.message.reply_text(
-            "⚠️ You’ve reached your daily limit.\nUpgrade for unlimited access:",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("⚡ Pro – $9.99", url=PRO_MONTHLY_URL)],
-                [InlineKeyboardButton("🔥 Elite – $29.99", url=ELITE_MONTHLY_URL)]
-            ])
+    if plan == "free" and remaining_free(query.from_user.id) <= 0:
+        await query.edit_message_text(
+            "⚠️ You’ve reached your free question limit.\nUpgrade to continue learning:\n"
+            f"[Pro Plan]({PRO_MONTHLY}) | [Elite Plan]({ELITE_MONTHLY})",
+            parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True,
         )
         return
 
-    user_data[user_id]["remaining"] -= 1
+    questions = QUESTIONS[plan][cat]
+    buttons = [
+        [InlineKeyboardButton(q, callback_data=f"ask_{cat}_{i}")]
+        for i, q in enumerate(questions[:5])
+    ]
+    await query.edit_message_text(f"📖 *{cat} Questions* — Choose one:", parse_mode=ParseMode.MARKDOWN,
+                                  reply_markup=InlineKeyboardMarkup(buttons))
 
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": message}]
+async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    _, cat, idx = query.data.split("_")
+    plan = get_plan(query.from_user.id)
+
+    question = QUESTIONS[plan][cat][int(idx)]
+    if plan == "free":
+        reduce_free_limit(query.from_user.id)
+    await query.edit_message_text(f"💭 *{question}*", parse_mode=ParseMode.MARKDOWN)
+    response = await ask_ai(question)
+    await query.message.reply_text(f"✨ {response}")
+
+async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    plan = get_plan(user_id)
+    remaining = remaining_free(user_id)
+    text = (
+        f"📊 *Your Status*\n\n"
+        f"👤 Plan: *{plan.capitalize()}*\n"
+        f"🧮 Remaining Free Questions: {remaining}\n\n"
+        f"🚀 [Upgrade to Pro]({PRO_MONTHLY}) | [Upgrade to Elite]({ELITE_MONTHLY})"
     )
+    await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
-    ai_reply = response.choices[0].message.content.strip()
-    await update.message.reply_text(ai_reply)
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_text = update.message.text
+    response = await ask_ai(user_text)
+    await update.message.reply_text(response)
 
-# === Daily Motivation ===
-async def send_daily_motivation(app):
-    for user_id in user_data.keys():
-        quote = MOTIVATIONAL_QUOTES[datetime.now().day % len(MOTIVATIONAL_QUOTES)]
-        try:
-            await app.bot.send_message(chat_id=user_id, text=f"🌅 Daily Motivation:\n\n{quote}")
-        except Exception:
-            continue
+async def send_daily_motivation(context: ContextTypes.DEFAULT_TYPE):
+    try:
+        with open("motivation.json", "r", encoding="utf-8") as f:
+            quotes = json.load(f)
+        quote = random.choice(quotes)
+        for user_id in USER_PLANS.keys():
+            try:
+                await context.bot.send_message(chat_id=user_id, text=f"🌅 *Daily Motivation:*\n\n{quote}",
+                                               parse_mode=ParseMode.MARKDOWN)
+            except Exception as e:
+                logger.error(f"Failed to send to {user_id}: {e}")
+    except Exception as e:
+        logger.error(f"Motivation error: {e}")
 
-# === Main App (no asyncio.run) ===
-def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-
+async def main():
+    app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("questions", menu))
     app.add_handler(CommandHandler("status", status))
-    app.add_handler(CommandHandler("upgrade", upgrade))
-    app.add_handler(CommandHandler("questions", questions))
-    app.add_handler(CallbackQueryHandler(category_callback, pattern="^cat_"))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat_with_ai))
+    app.add_handler(CallbackQueryHandler(category, pattern="^cat_"))
+    app.add_handler(CallbackQueryHandler(ask, pattern="^ask_"))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(send_daily_motivation, "cron", hour=9, args=[app])
-    scheduler.start()
+    job_queue = app.job_queue
+    job_queue.run_daily(send_daily_motivation, time=time(9, 0, 0))
 
-    logger.info("✅ Bot connected successfully! Running 24/7 on DigitalOcean Worker.")
-    app.run_polling(stop_signals=None)
+    logger.info("🤖 AI Tutor Pro running 24/7 on DigitalOcean Worker...")
+    await app.run_polling()
 
 if __name__ == "__main__":
-    main()
-
+    asyncio.run(main())
 
