@@ -27,7 +27,10 @@ print("✅ OpenAI SDK version:", openai.__version__)
 # === Initialize services ===
 bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
 dp = Dispatcher()
-client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+from httpx import AsyncClient
+http_client = AsyncClient(trust_env=False)
+client = AsyncOpenAI(api_key=OPENAI_API_KEY, http_client=http_client)
+
 tz = pytz.timezone("America/New_York")
 
 # === Database setup ===
