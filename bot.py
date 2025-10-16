@@ -10,8 +10,9 @@ from aiogram.filters import Command
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 import pytz
+import openai
 
-# === Load environment variables ===
+# === Load .env variables ===
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -20,13 +21,16 @@ PRO_YEARLY_URL = os.getenv("PRO_YEARLY_URL")
 ELITE_MONTHLY_URL = os.getenv("ELITE_MONTHLY_URL")
 ELITE_YEARLY_URL = os.getenv("ELITE_YEARLY_URL")
 
+# === Debug print to confirm SDK ===
+print("✅ OpenAI SDK version:", openai.__version__)
+
 # === Initialize services ===
 bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
 dp = Dispatcher()
 client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 tz = pytz.timezone("America/New_York")
 
-# === Database ===
+# === Database setup ===
 db = sqlite3.connect("users.db")
 cur = db.cursor()
 cur.execute("""
@@ -42,8 +46,8 @@ CREATE TABLE IF NOT EXISTS users (
 """)
 db.commit()
 
-# === Load prompts.json ===
-with open("ai_tutor_pro/prompts.json", "r", encoding="utf-8") as f:
+# === Load prompts ===
+with open("prompts.json", "r", encoding="utf-8") as f:
     PROMPTS = json.load(f)
 
 # === Helper functions ===
@@ -85,22 +89,23 @@ async def ai_reply(plan, category, question):
     model = get_model(plan)
     system = (
         f"You are AI Tutor Pro Bot, an expert mentor for {category}. "
-        "Give structured, actionable answers with clear steps, examples, and motivation. "
+        "Give structured, actionable, motivating answers. "
         "Always end with: 💡 Ask Smart. Think Smart. — AI Tutor Pro Bot"
     )
-    resp = await client.chat.completions.create(
+    response = await client.chat.completions.create(
         model=model,
-        messages=[{"role": "system", "content": system},
-                  {"role": "user", "content": question}],
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": question}
+        ],
         max_tokens=500
     )
-    return resp.choices[0].message.content.strip()
+    return response.choices[0].message.content.strip()
 
 def build_menu(buttons):
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=b[0], callback_data=b[1])] for b in buttons
-    ])
-    return kb
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text=b[0], callback_data=b[1])] for b in buttons]
+    )
 
 # === Commands ===
 @dp.message(Command("start"))
@@ -117,13 +122,13 @@ async def start_cmd(msg: Message):
 @dp.message(Command("help"))
 async def help_cmd(msg: Message):
     text = (
-        "🧠 Need a little guidance?\n\n"
-        "Here’s how to get the most from AI Tutor Pro Bot:\n"
-        "• /start — Begin your learning path\n"
-        "• /questions — Explore AI, Business, and Crypto\n"
-        "• /upgrade — Unlock more features\n"
-        "• /status — Check your plan & usage\n\n"
-        "💬 Pro Tip:\n“Ask Smart. Think Smart.”\n— AI Tutor Pro Bot"
+        "🧠 Need help?\n\n"
+        "Here’s how to use AI Tutor Pro Bot:\n"
+        "• /start – Welcome message\n"
+        "• /questions – Explore AI, Business, Crypto\n"
+        "• /upgrade – Unlock more power\n"
+        "• /status – Check your plan & usage\n\n"
+        "💬 Pro Tip:\nAsk Smart. Think Smart."
     )
     await msg.answer(text)
 
@@ -135,14 +140,14 @@ async def upgrade_cmd(msg: Message):
         "💡 Ask Smart. Think Smart."
     )
     buttons = [
-        ("💼 Pro Plan — Monthly", f"url:{PRO_MONTHLY_URL}"),
-        ("💼 Pro Plan — Yearly (20% Off)", f"url:{PRO_YEARLY_URL}"),
-        ("👑 Elite Plan — Monthly", f"url:{ELITE_MONTHLY_URL}"),
-        ("👑 Elite Plan — Yearly (20% Off)", f"url:{ELITE_YEARLY_URL}")
+        ("💼 Pro Plan — Monthly", PRO_MONTHLY_URL),
+        ("💼 Pro Plan — Yearly (20% Off)", PRO_YEARLY_URL),
+        ("👑 Elite Plan — Monthly", ELITE_MONTHLY_URL),
+        ("👑 Elite Plan — Yearly (20% Off)", ELITE_YEARLY_URL)
     ]
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=b[0], url=b[1].replace("url:", ""))] for b in buttons
-    ])
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text=b[0], url=b[1])] for b in buttons]
+    )
     await msg.answer(text, reply_markup=kb)
 
 @dp.message(Command("status"))
@@ -155,9 +160,10 @@ async def status_cmd(msg: Message):
         f"AI Questions Used: {user[3]}/{get_limits(plan)}\n"
         f"Business Questions Used: {user[4]}/{get_limits(plan)}\n"
         f"Crypto Questions Used: {user[5]}/{get_limits(plan)}\n\n"
-        f"Need more? <b><a href='https://t.me/{msg.from_user.username}?start=upgrade'>Upgrade here</a></b>"
+        f"Upgrade anytime via /upgrade\n"
+        f"💡 Ask Smart. Think Smart."
     )
-    await msg.answer(text, disable_web_page_preview=True)
+    await msg.answer(text)
 
 @dp.message(Command("questions"))
 async def questions_cmd(msg: Message):
@@ -204,12 +210,8 @@ async def section_select(call: CallbackQuery):
     if isinstance(content, dict):
         notice = content.get("notice", "")
         questions = content.get("questions", [])
-
-    buttons = []
-    for i, q in enumerate(questions, 1):
-        buttons.append((f"{i}. {q}", f"ask_{plan}_{category}_{section}_{i}"))
+    buttons = [(f"{i+1}. {q}", f"ask_{plan}_{category}_{section}_{i}") for i, q in enumerate(questions)]
     kb = build_menu(buttons + [("⬅️ Back", f"{plan}_{category}")])
-
     text = f"{notice}\nChoose a question below 👇" if notice else "Choose a question below 👇"
     await call.message.edit_text(text, reply_markup=kb)
 
@@ -219,7 +221,7 @@ async def handle_question(call: CallbackQuery):
     idx = int(idx)
     content = PROMPTS[category][plan][section]
     questions = content.get("questions", content)
-    question = questions[idx - 1]
+    question = questions[idx]
 
     user = get_user(call.from_user.id, call.from_user.username)
     used = user[3 + ["ai", "business", "crypto"].index(category)]
@@ -263,6 +265,7 @@ async def send_daily_motivation():
 
 # === Run ===
 async def main():
+    print("🤖 Bot connected successfully. Starting polling...")
     asyncio.create_task(send_daily_motivation())
     await dp.start_polling(bot)
 
