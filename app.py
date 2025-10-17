@@ -3,8 +3,10 @@ from flask import Flask
 app = Flask(__name__)
 
 @app.route('/')
-def home():
-    return "✅ Webhook is working! You can now use this link in your bot.py"
+def index():
+    return "✅ Webhook placeholder is live!"
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 8080))  # <— this is the key part
+    app.run(host="0.0.0.0", port=port)

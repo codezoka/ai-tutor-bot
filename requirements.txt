@@ -1,9 +1,9 @@
 flask
+gunicorn
 python-dotenv
 requests
 openai
 aiogram==3.13.1
-gunicorn
 
 
 
