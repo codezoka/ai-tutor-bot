@@ -85,10 +85,17 @@ async def handle_webhook(request):
 
 def create_aiohttp_app():
     app = web.Application()
+    
+    # ✅ Health check route for DigitalOcean
+    async def health_check(request):
+        return web.Response(text="✅ OK", status=200)
+    
+    app.router.add_get("/", health_check)
     app.router.add_post("/webhook", handle_webhook)
     app.on_startup.append(on_startup)
     app.on_shutdown.append(on_shutdown)
     return app
+
 
 # =====================================================
 # 🏁 Entry point
