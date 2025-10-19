@@ -1,32 +1,34 @@
 import os
+import sys
+import asyncio
+from aiohttp import web
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import BotCommand
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiohttp import web
-from openai import AsyncOpenAI
 from dotenv import load_dotenv
-import asyncio
+
+# 🧩 Force reload OpenAI to prevent version conflicts
+sys.modules.pop("openai", None)
 import openai
 print("🧩 OpenAI version in runtime:", openai.__version__)
-
 if not openai.__version__.startswith("1."):
     raise RuntimeError(f"❌ Wrong OpenAI version detected ({openai.__version__}). Must be >=1.0.0")
 
+from openai import AsyncOpenAI
 
+# 🔑 Load environment variables
 load_dotenv()
-
-# Environment variables
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
-# Initialize OpenAI and Telegram bot
-openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
-bot = Bot(token=TELEGRAM_TOKEN)
+# 🧠 Initialize clients
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
+openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
-# Basic commands
+# -------------------- Telegram Bot Commands --------------------
+
 @dp.message(commands=["start"])
 async def start_handler(message: types.Message):
     await message.answer("👋 Hello! I’m your AI Tutor Bot. Type /ask followed by your question!")
@@ -51,16 +53,18 @@ async def ask_handler(message: types.Message):
     except Exception as e:
         await message.answer(f"❌ Error: {e}")
 
-# Setup aiohttp app for webhook
+# -------------------- Webhook Setup --------------------
+
 async def on_startup(app):
     await bot.set_webhook(WEBHOOK_URL)
+    print(f"✅ Webhook set to {WEBHOOK_URL}")
 
 async def on_shutdown(app):
     await bot.delete_webhook()
+    print("🛑 Webhook deleted")
 
 def main():
     app = web.Application()
-    dp.include_router(dp)
     webhook_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     webhook_handler.register(app, path="/webhook")
 
@@ -70,6 +74,7 @@ def main():
 
     web.run_app(app, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
 
+# -------------------- Entry Point --------------------
 if __name__ == "__main__":
     main()
 
