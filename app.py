@@ -10,6 +10,9 @@ import asyncio
 import openai
 print("🧩 OpenAI version in runtime:", openai.__version__)
 
+if not openai.__version__.startswith("1."):
+    raise RuntimeError(f"❌ Wrong OpenAI version detected ({openai.__version__}). Must be >=1.0.0")
+
 
 load_dotenv()
 
