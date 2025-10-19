@@ -1,125 +1,69 @@
 import os
-import logging
-import asyncio
-from flask import Flask, request
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
+from aiogram.types import BotCommand
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiohttp import web
 from openai import AsyncOpenAI
+from dotenv import load_dotenv
+import asyncio
 
-# ========================
-# 🔧 Configuration
-# ========================
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+load_dotenv()
+
+# Environment variables
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://ai-tutor-bot-83opf.ondigitalocean.app/webhook")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
-if not BOT_TOKEN or not OPENAI_API_KEY:
-    raise ValueError("❌ Missing BOT_TOKEN or OPENAI_API_KEY in environment variables!")
+# Initialize OpenAI and Telegram bot
+openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+bot = Bot(token=TELEGRAM_TOKEN)
+dp = Dispatcher(storage=MemoryStorage())
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("AI_Tutor_Pro")
-
-# ========================
-# 🚀 Core Setup
-# ========================
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
-client = AsyncOpenAI(api_key=OPENAI_API_KEY)
-app = Flask(__name__)
-
-# ========================
-# 📩 Bot Handlers
-# ========================
-@dp.message(Command("start"))
+# Basic commands
+@dp.message(commands=["start"])
 async def start_handler(message: types.Message):
-    await message.answer(
-        "👋 Welcome to *AI Tutor Pro*! 🚀\n"
-        "I can help with learning, business, and AI insights.\n\n"
-        "Use /help to see all commands.",
-        parse_mode="Markdown"
-    )
+    await message.answer("👋 Hello! I’m your AI Tutor Bot. Type /ask followed by your question!")
 
-@dp.message(Command("help"))
+@dp.message(commands=["help"])
 async def help_handler(message: types.Message):
-    await message.answer(
-        "📘 *Available Commands:*\n"
-        "/start - Start the bot\n"
-        "/questions - Get AI prompts\n"
-        "/upgrade - View subscription plans\n"
-        "/status - Check your plan",
-        parse_mode="Markdown"
-    )
+    await message.answer("💡 Commands:\n/start - Welcome message\n/ask - Ask AI a question")
 
-@dp.message(Command("questions"))
-async def questions_handler(message: types.Message):
-    await message.answer(
-        "💡 *Smart Prompts:*\n"
-        "• What’s trending in AI?\n"
-        "• How can I grow my business?\n"
-        "• Send me a motivational quote!",
-        parse_mode="Markdown"
-    )
-
-@dp.message(Command("upgrade"))
-async def upgrade_handler(message: types.Message):
-    await message.answer(
-        "💎 *Upgrade Plans:*\n"
-        "Free: 5 messages/day\n"
-        "Pro: Unlimited + Fast replies\n"
-        "Elite: AI business strategy access\n\n"
-        "Crypto payments supported soon.",
-        parse_mode="Markdown"
-    )
-
-@dp.message(Command("status"))
-async def status_handler(message: types.Message):
-    await message.answer("🧾 You’re on the Free Plan (5 messages/day).")
-
-@dp.message()
-async def ai_chat(message: types.Message):
+@dp.message(commands=["ask"])
+async def ask_handler(message: types.Message):
+    prompt = message.text.replace("/ask", "").strip()
+    if not prompt:
+        await message.answer("Please ask something after /ask, e.g. /ask What is AI?")
+        return
+    await message.answer("🤖 Thinking...")
     try:
-        response = await client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a friendly, motivational AI tutor."},
-                {"role": "user", "content": message.text},
-            ]
+        response = await openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
         )
         await message.answer(response.choices[0].message.content)
     except Exception as e:
-        logger.error(f"AI Error: {e}")
-        await message.answer("⚠️ Sorry, something went wrong.")
+        await message.answer(f"❌ Error: {e}")
 
-# ========================
-# 🌐 Flask Webhook Routes
-# ========================
-@app.route("/", methods=["GET"])
-def home():
-    return "✅ AI Tutor Pro bot is running.", 200
-
-@app.route("/webhook", methods=["POST"])
-def webhook():
-    try:
-        update = types.Update.model_validate(request.json)
-        asyncio.get_event_loop().create_task(dp.feed_update(bot, update))
-        return {"ok": True}
-    except Exception as e:
-        logger.error(f"Webhook error: {e}")
-        return {"ok": False}, 500
-
-# ========================
-# 🧠 Webhook Setup
-# ========================
-async def setup_webhook():
-    await bot.delete_webhook(drop_pending_updates=True)
+# Setup aiohttp app for webhook
+async def on_startup(app):
     await bot.set_webhook(WEBHOOK_URL)
-    logger.info(f"✅ Webhook set to {WEBHOOK_URL}")
 
-# ========================
-# 🚀 Run Application
-# ========================
+async def on_shutdown(app):
+    await bot.delete_webhook()
+
+def main():
+    app = web.Application()
+    dp.include_router(dp)
+    webhook_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
+    webhook_handler.register(app, path="/webhook")
+
+    app.on_startup.append(on_startup)
+    app.on_shutdown.append(on_shutdown)
+    setup_application(app, dp, bot=bot)
+
+    web.run_app(app, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
+
 if __name__ == "__main__":
-    asyncio.run(setup_webhook())
-    logger.info("🤖 AI Tutor Pro is online!")
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+    main()
 
