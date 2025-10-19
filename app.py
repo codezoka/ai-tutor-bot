@@ -1,83 +1,122 @@
 import os
 import logging
-import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.types import Message
-from aiohttp import web
 from flask import Flask, request
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import BotCommand
 from openai import AsyncOpenAI
-from dotenv import load_dotenv
+import asyncio
 
 # Load environment variables
-load_dotenv()
-
-# Telegram and OpenAI credentials
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
 if not BOT_TOKEN or not OPENAI_API_KEY:
-    raise ValueError("❌ BOT_TOKEN or OPENAI_API_KEY missing in environment variables!")
+    raise ValueError("❌ Missing BOT_TOKEN or OPENAI_API_KEY in environment variables!")
 
-# Logging
+# Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("AI_Tutor_Pro")
 
-# Initialize clients
+# Initialize bot, dispatcher, and OpenAI client
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
-client = AsyncOpenAI(api_key=OPENAI_API_KEY)  # ✅ Fixed: no 'proxies' argument
+client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
-# Flask app for health check
-flask_app = Flask(__name__)
+# Create Flask app
+app = Flask(__name__)
 
-@flask_app.route('/')
-def home():
-    return "✅ AI Tutor Pro bot is running!"
+# === Telegram Commands ===
+@dp.message(commands=["start"])
+async def start_handler(message: types.Message):
+    await message.answer(
+        "👋 Hello! I'm *AI Tutor Pro*, your study and business assistant.\n"
+        "I can answer questions, motivate you, and help you grow.\n\n"
+        "Type /help to see what I can do!",
+        parse_mode="Markdown"
+    )
 
-# Telegram webhook handler
-@flask_app.route('/webhook', methods=['POST'])
-async def telegram_webhook():
-    update = types.Update(**request.json)
-    await dp.feed_update(bot, update)
-    return {"ok": True}
+@dp.message(commands=["help"])
+async def help_handler(message: types.Message):
+    await message.answer(
+        "📘 *Help Menu*\n\n"
+        "Available commands:\n"
+        "/start - Start the bot\n"
+        "/questions - Ask me smart prompts\n"
+        "/upgrade - Subscription info\n"
+        "/status - Check your account status",
+        parse_mode="Markdown"
+    )
 
-# Simple AI response handler
+@dp.message(commands=["questions"])
+async def question_handler(message: types.Message):
+    await message.answer(
+        "💡 Here are some ideas:\n"
+        "• What are the top AI business trends?\n"
+        "• How can I start an online business?\n"
+        "• Give me a daily motivation quote!"
+    )
+
+@dp.message(commands=["upgrade"])
+async def upgrade_handler(message: types.Message):
+    await message.answer(
+        "💎 *Upgrade Options*\n\n"
+        "• Free Plan — 5 daily questions.\n"
+        "• Pro Plan — Fast & unlimited access.\n"
+        "• Elite Plan — Includes AI business insights.\n\n"
+        "Coming soon: integrated crypto payments!"
+    )
+
+@dp.message(commands=["status"])
+async def status_handler(message: types.Message):
+    await message.answer("🔍 You are currently on the Free Plan (limit 5 daily messages).")
+
 @dp.message()
-async def handle_message(message: Message):
-    user_text = message.text.strip()
-
-    # Respond using OpenAI
+async def chat_handler(message: types.Message):
+    """Handles normal user messages and sends AI responses"""
     try:
         response = await client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful AI tutor."},
-                {"role": "user", "content": user_text}
+                {"role": "system", "content": "You are AI Tutor Pro, a friendly AI tutor and business mentor."},
+                {"role": "user", "content": message.text},
             ],
-            max_tokens=150
         )
-        reply = response.choices[0].message.content.strip()
-        await message.answer(reply)
+        answer = response.choices[0].message.content
+        await message.answer(answer)
     except Exception as e:
-        logger.error(f"OpenAI error: {e}")
-        await message.answer("⚠️ Sorry, I couldn’t process that right now.")
+        logger.error(f"AI error: {e}")
+        await message.answer("⚠️ Sorry, something went wrong. Please try again later.")
 
-# Start-up logic
-async def on_startup():
-    await bot.delete_webhook(drop_pending_updates=True)
-    await bot.set_webhook(WEBHOOK_URL)
-    logger.info(f"✅ Webhook set to {WEBHOOK_URL}")
 
-# Run bot + Flask server together
-async def start_bot():
-    await on_startup()
-    logger.info("🤖 AI Tutor Pro Bot is fully online!")
+# === Flask Webhook Route ===
+@app.route("/webhook", methods=["POST"])
+async def handle_webhook():
+    """Main webhook endpoint for Telegram"""
+    try:
+        update = types.Update.model_validate(request.json)
+        await dp.feed_update(bot, update)
+        return {"ok": True}
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        return {"ok": False}, 500
 
-    loop = asyncio.get_running_loop()
-    loop.create_task(flask_app.run(host="0.0.0.0", port=8080))
-    await asyncio.Future()  # Keep running
+
+@app.route("/", methods=["GET"])
+def index():
+    return "🤖 AI Tutor Pro bot is running!", 200
+
+
+# === Webhook Setup (runs when deployed) ===
+async def set_webhook():
+    webhook_url = os.getenv("WEBHOOK_URL")
+    if not webhook_url:
+        webhook_url = "https://ai-tutor-bot-83opf.ondigitalocean.app/webhook"
+    await bot.set_webhook(webhook_url)
+    logger.info(f"✅ Webhook set to {webhook_url}")
+
 
 if __name__ == "__main__":
-    asyncio.run(start_bot())
+    asyncio.run(set_webhook())
+    logger.info("🤖 AI Tutor Pro Bot is fully online!")
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
 
