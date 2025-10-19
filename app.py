@@ -7,6 +7,9 @@ from aiohttp import web
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 import asyncio
+import openai
+print("🧩 OpenAI version in runtime:", openai.__version__)
+
 
 load_dotenv()
 

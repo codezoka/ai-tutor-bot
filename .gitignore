@@ -1,11 +1,9 @@
+# Ignore environment & system files
+.env
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.env
 venv/
 .venv/
-instance/
-.db
 .DS_Store
+
 
