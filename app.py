@@ -41,6 +41,8 @@ if not BOT_TOKEN or not OPENAI_API_KEY:
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
+from openai import AsyncOpenAI
+
 client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
 # -----------------------
