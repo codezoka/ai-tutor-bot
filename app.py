@@ -10,30 +10,22 @@ import openai
 
 print("🧩 OpenAI version in runtime:", openai.__version__)
 
-# Load environment variables
 load_dotenv()
 
-TELEGRAM_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
-# Initialize OpenAI and Telegram bot
 openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
-bot = Bot(token=TELEGRAM_TOKEN)
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 router = Router()
 
-# --- COMMAND HANDLERS ---
-
-@router.message(lambda message: message.text and message.text.startswith("/start"))
+@router.message(lambda m: m.text and m.text.startswith("/start"))
 async def start_handler(message: types.Message):
     await message.answer("👋 Hello! I’m your AI Tutor Bot. Type /ask followed by your question!")
 
-@router.message(lambda message: message.text and message.text.startswith("/help"))
-async def help_handler(message: types.Message):
-    await message.answer("💡 Commands:\n/start - Welcome message\n/ask - Ask AI a question")
-
-@router.message(lambda message: message.text and message.text.startswith("/ask"))
+@router.message(lambda m: m.text and m.text.startswith("/ask"))
 async def ask_handler(message: types.Message):
     prompt = message.text.replace("/ask", "").strip()
     if not prompt:
@@ -50,7 +42,7 @@ async def ask_handler(message: types.Message):
     except Exception as e:
         await message.answer(f"❌ Error: {e}")
 
-# --- WEBHOOK SETUP ---
+# ---------- Webhook + Healthcheck ----------
 
 async def on_startup(app):
     await bot.set_webhook(WEBHOOK_URL)
@@ -58,12 +50,17 @@ async def on_startup(app):
 async def on_shutdown(app):
     await bot.delete_webhook()
 
+async def healthcheck(request):
+    return web.Response(text="✅ AI Tutor Bot alive and healthy!", status=200)
+
 def main():
     dp.include_router(router)
-
     app = web.Application()
     webhook_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     webhook_handler.register(app, path="/webhook")
+
+    # Add healthcheck route for DigitalOcean
+    app.router.add_get("/", healthcheck)
 
     app.on_startup.append(on_startup)
     app.on_shutdown.append(on_shutdown)
@@ -73,4 +70,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
