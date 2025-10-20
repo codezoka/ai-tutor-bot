@@ -14,12 +14,12 @@ from dotenv import load_dotenv
 
 # === Load environment variables ===
 load_dotenv()
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 WEBHOOK_URL = "https://ai-tutor-bot-83opf.ondigitalocean.app/webhook"
 
 # === Initialize clients ===
-bot = Bot(token=TELEGRAM_TOKEN)
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
@@ -112,7 +112,6 @@ async def compare_plans(callback: types.CallbackQuery):
         "💡 Tip: Pro and Elite members get exclusive AI answers tailored for business growth!",
         parse_mode="Markdown"
     )
-
 
 # === /status Command ===
 @dp.message(F.text == "/status")
