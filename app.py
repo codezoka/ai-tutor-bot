@@ -178,6 +178,10 @@ def main():
     app = web.Application()
     webhook_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     webhook_handler.register(app, path="/webhook")
+    async def health_check(request):
+        return web.Response(text="AI Tutor Bot alive and healthy!")
+
+    app.router.add_get("/", health_check)
     app.on_startup.append(on_startup)
     app.on_shutdown.append(on_shutdown)
     setup_application(app, dp, bot=bot)
