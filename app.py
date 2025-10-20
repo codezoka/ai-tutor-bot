@@ -1,258 +1,175 @@
 import os
 import json
-import random
 import asyncio
 from datetime import datetime, timedelta
 from aiohttp import web
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.filters import CommandStart, Command
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 
-# === Load environment variables ===
+# ──────────────  Load Environment  ──────────────
 load_dotenv()
-BOT_TOKEN = os.getenv("TELEGRAM_TOKEN") or os.getenv("BOT_TOKEN")
-OPENAI_KEY = os.getenv("OPENAI_API_KEY")
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 PRO_MONTHLY_URL = os.getenv("PRO_MONTHLY_URL")
 PRO_YEARLY_URL = os.getenv("PRO_YEARLY_URL")
 ELITE_MONTHLY_URL = os.getenv("ELITE_MONTHLY_URL")
 ELITE_YEARLY_URL = os.getenv("ELITE_YEARLY_URL")
 
-# === Initialize clients ===
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
-openai_client = AsyncOpenAI(api_key=OPENAI_KEY)
+client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
-# === File paths ===
-PROMPTS_FILE = "prompts.json"
-USERS_FILE = "users.json"
+# ──────────────  Load Smart Questions  ──────────────
+with open("prompts.json", "r", encoding="utf-8") as f:
+    SMART_QUESTIONS = json.load(f)
 
-# === Load prompts ===
-with open(PROMPTS_FILE, "r", encoding="utf-8") as f:
-    PROMPTS = json.load(f)
+# ──────────────  User Data  ──────────────
+user_data = {}  # {user_id: {"plan": "Free", "used": 0}}
 
-# === Helper functions ===
-def load_users():
-    if not os.path.exists(USERS_FILE):
-        return {}
-    with open(USERS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+# ──────────────  Helper: Build Buttons  ──────────────
+def build_keyboard(buttons, back_to=None):
+    kb = InlineKeyboardBuilder()
+    for b in buttons:
+        kb.button(text=b, callback_data=b)
+    if back_to:
+        kb.button(text="🔙 Back", callback_data=back_to)
+    kb.adjust(2)
+    return kb.as_markup()
 
-def save_users(data):
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-
-def get_user(user_id):
-    users = load_users()
-    if str(user_id) not in users:
-        users[str(user_id)] = {
-            "plan": "free",
-            "used_questions": 0,
-            "last_reset": str(datetime.utcnow().date())
-        }
-        save_users(users)
-    return users[str(user_id)]
-
-def update_user(user_id, key, value):
-    users = load_users()
-    if str(user_id) not in users:
-        users[str(user_id)] = {}
-    users[str(user_id)][key] = value
-    save_users(users)
-
-# === AI model selector ===
-def get_model(plan):
-    if plan == "pro":
-        return "gpt-4-turbo"
-    elif plan == "elite":
-        return "gpt-4o"
-    return "gpt-4o-mini"
-
-# === UI keyboards ===
-def plans_keyboard():
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🟢 Free", callback_data="plan_free"),
-         InlineKeyboardButton(text="⚡ Pro", callback_data="plan_pro"),
-         InlineKeyboardButton(text="💎 Elite", callback_data="plan_elite")]
-    ])
-    return kb
-
-def categories_keyboard(plan):
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="💼 Business", callback_data=f"{plan}_business")],
-        [InlineKeyboardButton(text="🤖 AI", callback_data=f"{plan}_ai")],
-        [InlineKeyboardButton(text="💰 Crypto", callback_data=f"{plan}_crypto")],
-        [InlineKeyboardButton(text="⬅️ Back", callback_data="back_to_plans")]
-    ])
-    return kb
-
-def level_keyboard(plan, category):
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🟢 Starter", callback_data=f"{plan}_{category}_starter")],
-        [InlineKeyboardButton(text="🚀 Profit", callback_data=f"{plan}_{category}_profit")],
-        [InlineKeyboardButton(text="⬅️ Back", callback_data=f"back_{plan}_categories")]
-    ])
-    return kb
-
-def questions_keyboard(plan, category, level):
-    questions = PROMPTS[category][plan][level]
-    kb = []
-    for q in questions:
-        kb.append([InlineKeyboardButton(text=q[:60], callback_data=f"q_{plan}_{category}_{level}_{questions.index(q)}")])
-    kb.append([InlineKeyboardButton(text="⬅️ Back", callback_data=f"back_{plan}_{category}_levels")])
-    return InlineKeyboardMarkup(inline_keyboard=kb)
-
-def upgrade_keyboard():
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="⚡ Pro $9.99/mo", url=PRO_MONTHLY_URL)],
-        [InlineKeyboardButton(text="⚡ Pro $99.99/yr (20% off)", url=PRO_YEARLY_URL)],
-        [InlineKeyboardButton(text="💎 Elite $19.99/mo", url=ELITE_MONTHLY_URL)],
-        [InlineKeyboardButton(text="💎 Elite $199.99/yr (20% off)", url=ELITE_YEARLY_URL)]
-    ])
-
-# === Message handlers ===
-@dp.message(commands=["start"])
-async def start_cmd(message: types.Message):
+# ──────────────  /start  ──────────────
+@dp.message(CommandStart())
+async def start_handler(message: types.Message):
+    user_data[message.from_user.id] = {"plan": "Free", "used": 0}
     text = (
-        "🤖 <b>AI Tutor Bot — Ask Smart. Think Smart.</b>\n\n"
-        "Learn to think like a CEO and innovator.\n\n"
-        "🟢 Free plan → Try 5 Smart Questions across AI, Business and Crypto.\n"
-        "⚡ Pro & Elite → Unlock more Smart Questions and get <b>faster AI responses</b>.\n\n"
-        "You can always type your own questions freely below.\n\n"
-        "👇 Choose your plan to begin:"
+        "🤖 **AI Tutor Bot – Ask Smart, Think Smart**\n\n"
+        "Welcome! I’m your personal AI tutor that helps you ask **smarter questions** "
+        "in **Business**, **AI**, and **Crypto** to think like a CEO.\n\n"
+        "✨ Free plan: 5 smart questions total.\n"
+        "⚡️ Pro = faster responses + 30 questions.\n"
+        "🚀 Elite = fastest AI + 50 questions and priority support.\n\n"
+        "Ready? Choose your plan below 👇"
     )
-    await message.answer(text, reply_markup=plans_keyboard(), parse_mode="HTML")
+    await message.answer(
+        text,
+        reply_markup=build_keyboard(["🆓 Free Plan", "⚡ Pro Plan", "🚀 Elite Plan"])
+    )
 
-@dp.message(commands=["help"])
-async def help_cmd(message: types.Message):
+# ──────────────  /help  ──────────────
+@dp.message(Command("help"))
+async def help_handler(message: types.Message):
+    await message.answer(
+        "🧭 **How to use AI Tutor Bot**\n\n"
+        "1️⃣ Use /start to choose your plan and category.\n"
+        "2️⃣ Use /questions to see smart questions.\n"
+        "3️⃣ Type your own question anytime – no limits for manual chat.\n"
+        "4️⃣ Use /upgrade to go Pro or Elite for faster replies and more questions.\n"
+        "5️⃣ Use /status to see your plan and remaining questions."
+    )
+
+# ──────────────  /upgrade  ──────────────
+@dp.message(Command("upgrade"))
+async def upgrade_handler(message: types.Message):
     text = (
-        "💡 <b>How to use AI Tutor Bot</b>\n\n"
-        "1️⃣ /start — Choose your plan and explore Smart Questions.\n"
-        "2️⃣ You can type any question anytime to chat freely with AI.\n"
-        "3️⃣ /status — See your plan and remaining Smart Questions.\n"
-        "4️⃣ /upgrade — Unlock Pro or Elite for more Smart Questions and faster AI.\n\n"
-        "🧠 Ask Smart. Think Smart. Grow daily."
+        "💎 **Upgrade Your AI Tutor Experience**\n\n"
+        "⚡ Pro Plan – $9.99/mo or $99.99/yr (20 % off)\n"
+        "   – Faster AI responses + 30 smart questions.\n\n"
+        "🚀 Elite Plan – $19.99/mo or $199.99/yr (20 % off)\n"
+        "   – Fastest AI + 50 smart questions + priority support.\n\n"
+        "Choose your plan below 👇"
     )
-    await message.answer(text, parse_mode="HTML")
+    buttons = [
+        ("⚡ Pro Monthly", PRO_MONTHLY_URL),
+        ("⚡ Pro Yearly (20 % off)", PRO_YEARLY_URL),
+        ("🚀 Elite Monthly", ELITE_MONTHLY_URL),
+        ("🚀 Elite Yearly (20 % off)", ELITE_YEARLY_URL),
+    ]
+    kb = InlineKeyboardBuilder()
+    for text_btn, url in buttons:
+        kb.button(text=text_btn, url=url)
+    await message.answer(text, reply_markup=kb.as_markup())
 
-@dp.message(commands=["upgrade"])
-async def upgrade_cmd(message: types.Message):
-    text = (
-        "💎 <b>Upgrade Your Experience</b>\n\n"
-        "⚡ Pro Plan → 30 Smart Questions per category (15 Starter + 15 Profit) with Faster AI.\n"
-        "💎 Elite Plan → 50 Smart Questions per category (25 Starter + 25 Profit) with Full Power AI.\n\n"
-        "Yearly plans include <b>20% off</b> and Full Power AI speed.\n\n"
-        "👇 Choose your plan:"
+# ──────────────  /status  ──────────────
+@dp.message(Command("status"))
+async def status_handler(message: types.Message):
+    data = user_data.get(message.from_user.id, {"plan": "Free", "used": 0})
+    remaining = 5 - data["used"] if data["plan"] == "Free" else "Unlimited"
+    await message.answer(
+        f"📊 **Your Status**\n\n"
+        f"Plan: {data['plan']}\n"
+        f"Smart Questions Left: {remaining}\n"
+        f"Used: {data['used']}"
     )
-    await message.answer(text, reply_markup=upgrade_keyboard(), parse_mode="HTML")
 
-@dp.message(commands=["status"])
-async def status_cmd(message: types.Message):
-    user = get_user(message.from_user.id)
-    remaining = max(0, 5 - user["used_questions"]) if user["plan"] == "free" else "Unlimited until renewal"
-    text = (
-        f"📊 <b>Your Status</b>\n\n"
-        f"👤 Plan: <b>{user['plan'].capitalize()}</b>\n"
-        f"💬 Smart Questions left: <b>{remaining}</b>\n"
-        f"⏰ Renewal: <b>{user.get('renewal', 'Lifetime Free')}</b>\n\n"
-        "Upgrade for more Smart Questions and faster AI responses!"
-    )
-    await message.answer(text, parse_mode="HTML")
+# ──────────────  /ask  ──────────────
+@dp.message(Command("ask"))
+async def ask_handler(message: types.Message):
+    prompt = message.text.replace("/ask", "").strip()
+    if not prompt:
+        await message.answer("Please type something after /ask (e.g. /ask What is AI?)")
+        return
+    await generate_answer(message, prompt)
 
+# ──────────────  Handle text (free typing)  ──────────────
 @dp.message()
-async def chat_ai(message: types.Message):
-    user = get_user(message.from_user.id)
-    model = get_model(user["plan"])
+async def handle_text(message: types.Message):
+    prompt = message.text.strip()
+    if not prompt:
+        return
+    await generate_answer(message, prompt)
+
+# ──────────────  Core AI Logic  ──────────────
+async def generate_answer(message: types.Message, prompt: str):
+    user_id = message.from_user.id
+    plan = user_data.get(user_id, {"plan": "Free", "used": 0})
+    if plan["plan"] == "Free" and plan["used"] >= 5:
+        await message.answer("🔒 You used all 5 smart questions. Upgrade to unlock more!")
+        return
+    await message.answer("🤖 Thinking...")
     try:
-        response = await openai_client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": message.text}],
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
         )
         await message.answer(response.choices[0].message.content)
+        if plan["plan"] == "Free":
+            plan["used"] += 1
+            user_data[user_id] = plan
     except Exception as e:
         await message.answer(f"❌ Error: {e}")
 
-# === Callback handlers ===
-@dp.callback_query()
-async def callbacks(call: types.CallbackQuery):
-    data = call.data
-    user = get_user(call.from_user.id)
+# ──────────────  Motivational Quotes  ──────────────
+QUOTES = [
+    "💭 Success starts with smart questions. Ask one today!",
+    "🚀 Upgrade your mind — upgrade your AI power.",
+    "🔥 Every question you ask is a step toward mastery.",
+    "💡 Pro and Elite users think bigger — be one of them!",
+    "✨ Don’t wait for success — ask for it. /upgrade now."
+]
 
-    if data == "back_to_plans":
-        await call.message.edit_text("👇 Choose your plan:", reply_markup=plans_keyboard())
-        return
-
-    if data.startswith("plan_"):
-        plan = data.split("_")[1]
-        update_user(call.from_user.id, "plan_choice", plan)
-        await call.message.edit_text("📂 Choose a category:", reply_markup=categories_keyboard(plan))
-        return
-
-    if data.startswith("back_") and "categories" in data:
-        plan = data.split("_")[1]
-        await call.message.edit_text("📂 Choose a category:", reply_markup=categories_keyboard(plan))
-        return
-
-    if data.startswith(("free_", "pro_", "elite_")) and data.count("_") == 1:
-        plan, category = data.split("_")
-        await call.message.edit_text("📘 Choose a level:", reply_markup=level_keyboard(plan, category))
-        return
-
-    if data.startswith(("free_", "pro_", "elite_")) and data.count("_") == 2:
-        plan, category, level = data.split("_")
-        await call.message.edit_text("🧠 Choose a Smart Question:", reply_markup=questions_keyboard(plan, category, level))
-        return
-
-    if data.startswith("q_"):
-        _, plan, category, level, q_index = data.split("_")
-        q_index = int(q_index)
-        question = PROMPTS[category][plan][level][q_index]
-        if user["plan"] == "free" and user["used_questions"] >= 5:
-            await call.message.answer("🔒 You’ve reached your free Smart Question limit. Upgrade to unlock full access!", reply_markup=upgrade_keyboard())
-            return
-        await call.message.answer(f"🤔 <b>{question}</b>", parse_mode="HTML")
-        model = get_model(user["plan"])
-        try:
-            response = await openai_client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": question}],
-            )
-            await call.message.answer(response.choices[0].message.content)
-            if user["plan"] == "free":
-                update_user(call.from_user.id, "used_questions", user["used_questions"] + 1)
-        except Exception as e:
-            await call.message.answer(f"❌ Error: {e}")
-        return
-
-# === Daily motivation ===
-async def send_motivations():
-    quotes = [
-        "💡 Small steps create big wins — take one today.",
-        "🚀 Knowledge without action is just potential — act now.",
-        "💭 Every click you make is a step toward freedom.",
-        "⚡ Winners don’t wait — they start.",
-        "🔥 Discipline beats motivation every day — do it now."
-    ]
+async def send_daily_quotes():
     while True:
         now = datetime.utcnow()
-        target = now.replace(hour=15, minute=0, second=0, microsecond=0)
+        target = datetime.combine(now.date(), datetime.min.time()) + timedelta(hours=15)
         if now > target:
             target += timedelta(days=1)
         await asyncio.sleep((target - now).total_seconds())
-        users = load_users()
-        for uid in users:
+        for uid in user_data.keys():
             try:
-                await bot.send_message(uid, random.choice(quotes) + "\n\n🤖 @ai_tutor_pro_bot")
+                await bot.send_message(uid, f"🌞 {QUOTES[now.day % len(QUOTES)]}")
             except:
                 pass
 
-# === Webhook setup ===
+# ──────────────  Webhook Setup  ──────────────
 async def on_startup(app):
     await bot.set_webhook(WEBHOOK_URL)
-    asyncio.create_task(send_motivations())
+    asyncio.create_task(send_daily_quotes())
 
 async def on_shutdown(app):
     await bot.delete_webhook()
@@ -261,9 +178,9 @@ def main():
     app = web.Application()
     webhook_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     webhook_handler.register(app, path="/webhook")
-    setup_application(app, dp, bot=bot)
     app.on_startup.append(on_startup)
     app.on_shutdown.append(on_shutdown)
+    setup_application(app, dp, bot=bot)
     web.run_app(app, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
 
 if __name__ == "__main__":
