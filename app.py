@@ -3,7 +3,7 @@ import json
 import asyncio
 import random
 from datetime import datetime, timedelta
-from aiogram import Bot, Dispatcher, types, F
+from aiogram import Bot, Dispatcher, F, types
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
@@ -51,6 +51,10 @@ QUOTES = [
 def keyboard(buttons):
     return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text=t, callback_data=d) for t, d in buttons]])
 
+# ────────────── Root Health Check ──────────────
+async def handle_root(request):
+    return web.Response(text="AI Tutor Bot alive and healthy!", status=200)
+
 # ────────────── /start ──────────────
 @dp.message(F.text == "/start")
 async def start(message: types.Message):
@@ -60,7 +64,7 @@ async def start(message: types.Message):
         "🆓 Free – 5 smart questions\n"
         "⚡ Pro – Faster responses + 30 questions\n"
         "💎 Elite – Fastest + 50 questions + priority support\n\n"
-        "💬 Type your own questions anytime!"
+        "💬 You can also type your own questions anytime!"
     )
     buttons = [("🆓 Free", "plan_free"), ("⚡ Pro", "plan_pro"), ("💎 Elite", "plan_elite")]
     await message.answer(text, reply_markup=keyboard(buttons), parse_mode="Markdown")
@@ -123,7 +127,7 @@ async def plan_selected(callback: types.CallbackQuery):
                ("💰 Crypto", f"{plan}_crypto"),
                ("⬅️ Back", "back_start")]
     await callback.message.edit_text(
-        f"📚 *{plan} Plan Selected!*\nChoose your category 👇",
+        f"📚 *{plan} Plan Selected!* Choose your category 👇",
         reply_markup=keyboard(buttons),
         parse_mode="Markdown"
     )
@@ -135,11 +139,8 @@ async def category_selected(callback: types.CallbackQuery):
     buttons = [("🌱 Starter", f"{plan}_{category}_starter"),
                ("💼 Profit", f"{plan}_{category}_profit"),
                ("⬅️ Back", "back_start")]
-    await callback.message.edit_text(
-        f"{PROMPTS[category]['intro']}\n\nChoose your level 👇",
-        reply_markup=keyboard(buttons),
-        parse_mode="Markdown"
-    )
+    intro = PROMPTS.get(category, {}).get("intro", f"{category.capitalize()} – Choose your level 👇")
+    await callback.message.edit_text(intro, reply_markup=keyboard(buttons), parse_mode="Markdown")
 
 # ────────────── Level selection ──────────────
 @dp.callback_query(F.data.endswith(("_starter", "_profit")))
@@ -172,7 +173,7 @@ async def show_questions(message: types.Message):
 @dp.message()
 async def chat_with_ai(message: types.Message):
     prompt = message.text.strip()
-    await message.answer("🤖 Thinking...")
+    await message.answer("🤖 Thinking…")
     try:
         response = await openai_client.chat.completions.create(
             model="gpt-4o-mini",
@@ -192,7 +193,7 @@ async def daily_motivation():
             wait += 86400
         await asyncio.sleep(wait)
         quote = random.choice(QUOTES)
-        for uid in user_data:
+        for uid in list(user_data.keys()):
             try:
                 await bot.send_message(uid, f"🌟 *Daily Motivation:* {quote}", parse_mode="Markdown")
             except:
@@ -208,6 +209,7 @@ async def on_shutdown(app):
 
 def main():
     app = web.Application()
+    app.router.add_get("/", handle_root)          # ✅ Health-check route
     SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="/webhook")
     app.on_startup.append(on_startup)
     app.on_shutdown.append(on_shutdown)
