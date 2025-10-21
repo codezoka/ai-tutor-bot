@@ -63,8 +63,10 @@ def register_user(user_id):
         USERS[user_id] = {"plan": "free", "questions_left": 5, "last_motivation": None}
 
 # === COMMAND: /start ===
-@dp.message(commands=["start"])
-async def start_command(message: types.Message):
+@dp.message(F.text == "/start")
+async def start_handler(message: types.Message):
+    await message.answer("Hello!")
+
     register_user(message.from_user.id)
     text = (
         "🤖 <b>Welcome to AI Tutor Pro Bot!</b>\n\n"
