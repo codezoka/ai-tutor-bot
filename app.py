@@ -265,24 +265,50 @@ async def send_daily_quote():
         for user_id in USERS.keys():
             await bot.send_message(user_id, quote)
 
-# ===== Health Check =====
-async def handle_health(request):
-    return web.Response(text="OK")
+# ===== Auto Webhook + Health Check + Daily Rotation =====
 
-# ===== Main Setup =====
 async def on_startup(app):
-    await bot.set_webhook(WEBHOOK_URL)
-    asyncio.create_task(send_daily_quote())
+    """Runs at startup: sets webhook & starts quote rotation"""
+    try:
+        await bot.set_webhook(WEBHOOK_URL)
+        asyncio.create_task(send_daily_quote())
+        print(f"✅ Webhook automatically set to: {WEBHOOK_URL}")
+    except Exception as e:
+        print(f"⚠️ Failed to set webhook: {e}")
+
+
+async def on_shutdown(app):
+    """Cleans up when shutting down"""
+    await bot.delete_webhook()
+    print("🧹 Webhook removed")
+
+
+async def handle_health(request):
+    """Health check endpoint for DigitalOcean"""
+    return web.Response(text="✅ AI Tutor Bot is Healthy", content_type="text/plain")
+
 
 def main():
+    """Main entry point for webhook-based bot on DigitalOcean"""
     app = web.Application()
+    
+    # Health check (DigitalOcean expects this route)
     app.router.add_get("/", handle_health)
-    dp.startup.register(on_startup)
+    
+    # Webhook setup
     from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-    SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="/")
+    SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="/webhook")
+
+    app.on_startup.append(on_startup)
+    app.on_shutdown.append(on_shutdown)
+    
     setup_application(app, dp, bot=bot)
-    web.run_app(app, host="0.0.0.0", port=PORT)
+    
+    port = int(os.getenv("PORT", 8080))
+    web.run_app(app, host="0.0.0.0", port=port)
+
 
 if __name__ == "__main__":
     main()
+
 
