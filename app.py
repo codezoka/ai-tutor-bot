@@ -231,6 +231,26 @@ async def handle_user_message(message: types.Message):
         await message.answer(response.choices[0].message.content)
     except Exception as e:
         await message.answer(f"❌ Error: {e}")
+# ===== Admin Dashboard (owner only) =====
+ADMIN_ID = 5722976786  # your Telegram ID
+
+@dp.message(Command("admin"))
+async def cmd_admin(message: types.Message):
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("⛔ You are not authorized to view admin data.")
+        return
+
+    cursor.execute("SELECT COUNT(*), SUM(used), SUM(plan='free'), SUM(plan='pro'), SUM(plan='elite'), SUM(renewal IS NOT NULL) FROM users")
+    total_users, total_used, free_count, pro_count, elite_count, active_renewals = cursor.fetchone()
+
+    text = (
+        "📊 <b>AI Tutor Admin Dashboard</b>\n\n"
+        f"👥 Total Users: <b>{total_users or 0}</b>\n"
+        f"🆓 Free: <b>{free_count or 0}</b> | ⚡ Pro: <b>{pro_count or 0}</b> | 🚀 Elite: <b>{elite_count or 0}</b>\n"
+        f"💬 Total Smart Questions Used: <b>{total_used or 0}</b>\n"
+        f"📅 Active Renewals: <b>{active_renewals or 0}</b>"
+    )
+    await message.answer(text, parse_mode="HTML")
 
 # ===== Motivational Quotes Rotation =====
 async def send_daily_quote():
