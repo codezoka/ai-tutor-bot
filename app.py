@@ -1,6 +1,7 @@
 import os
 import json
 import asyncio
+import random
 from datetime import datetime, timedelta
 from aiohttp import web
 from aiogram import Bot, Dispatcher, types
@@ -10,6 +11,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
+from aiogram.client.default import DefaultBotProperties
 
 # ===== Load Environment Variables =====
 load_dotenv()
@@ -25,13 +27,7 @@ ELITE_MONTHLY_URL = os.getenv("ELITE_MONTHLY_URL")
 ELITE_YEARLY_URL = os.getenv("ELITE_YEARLY_URL")
 
 # ===== Initialize Bot =====
-from aiogram.client.default import DefaultBotProperties
-
-bot = Bot(
-    token=BOT_TOKEN,
-    default=DefaultBotProperties(parse_mode=ParseMode.HTML)
-)
-
+bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=MemoryStorage())
 openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
@@ -39,10 +35,14 @@ openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 with open("prompts.json", "r", encoding="utf-8") as f:
     QUESTIONS = json.load(f)
 
+# ===== Load Motivational Quotes =====
+with open("motivational_quotes.json", "r", encoding="utf-8") as f:
+    MOTIVATIONAL_QUOTES = json.load(f)
+
 # ===== Simple In-Memory User Tracking =====
 USERS = {}  # {user_id: {"plan": "free", "used": 0, "renewal": "2025-11-01"}}
 
-# ====== Helper Functions ======
+# ===== Helper Keyboards =====
 def get_plan_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🆓 Free", callback_data="plan_free")],
@@ -73,18 +73,19 @@ def get_upgrade_keyboard():
         [InlineKeyboardButton(text="🚀 Elite — $199.99/year (Save 20%)", url=ELITE_YEARLY_URL)],
         [InlineKeyboardButton(text="⬅ Back to Menu", callback_data="back_to_menu")]
     ])
-# ====== Command Handlers ======
 
+# ===== Commands =====
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     USERS.setdefault(message.from_user.id, {"plan": "free", "used": 0})
     text = (
-        "🤖 <b>Welcome to AI Tutor Bot – Ask Smart, Think Smart!</b>\n\n"
-        "✨ Transform your curiosity into results:\n"
-        "🆓 <b>Free:</b> 5 Smart Questions + custom AI chat\n"
-        "⚡ <b>Pro:</b> Fast answers, 15 Smart Questions/category\n"
-        "🚀 <b>Elite:</b> Full Power AI – 25 Smart Questions/category\n\n"
-        "💡 Choose your plan below and start learning smarter!"
+        "🤖 <b>Welcome to AI Tutor Bot – Ask Like the 1%!</b>\n\n"
+        "🚀 Ask like a CEO or expert — and get results that move you forward.\n\n"
+        "💡 Learn faster in the world’s most powerful topics:\n"
+        "🧠 <b>AI & Innovation</b> – Master cutting-edge tools\n"
+        "💼 <b>Business</b> – Build smarter and scale faster\n"
+        "💰 <b>Crypto</b> – Profit from tomorrow’s opportunities\n\n"
+        "🔥 Choose your plan below and start asking questions that successful people ask!"
     )
     await message.answer(text, reply_markup=get_plan_keyboard())
 
@@ -92,21 +93,21 @@ async def cmd_start(message: types.Message):
 async def cmd_help(message: types.Message):
     text = (
         "🧭 <b>How to use AI Tutor Bot:</b>\n\n"
-        "🧠 <b>/start</b> – Choose your plan and start learning\n"
+        "🧠 <b>/start</b> – Begin and choose your plan\n"
         "💬 <b>/questions</b> – Explore ready smart questions\n"
         "⚙️ <b>/upgrade</b> – Unlock Pro or Elite for full access\n"
-        "📊 <b>/status</b> – View your plan and question count\n\n"
+        "📊 <b>/status</b> – View your plan and usage\n\n"
         "💡 You can also type your own question anytime!"
     )
-    await message.answer(text, reply_markup=get_plan_keyboard())
+    await message.answer(text)
 
 @dp.message(Command("upgrade"))
 async def cmd_upgrade(message: types.Message):
     text = (
         "🚀 <b>Upgrade Now!</b>\n\n"
-        "⚡ <b>Pro:</b> Get faster answers, 15 questions/category, and unlimited AI chats.\n"
-        "💎 <b>Elite:</b> Full Power AI, 25 premium questions/category, instant results.\n\n"
-        "💥 Don’t limit your mind — upgrade today and unlock your full potential!"
+        "⚡ <b>Pro:</b> Faster answers + 15 smart questions per category.\n"
+        "💎 <b>Elite:</b> 25 premium questions per category + full power AI.\n\n"
+        "💥 Don’t limit your growth — upgrade today and unlock your potential!"
     )
     await message.answer(text, reply_markup=get_upgrade_keyboard())
 
@@ -116,27 +117,27 @@ async def cmd_status(message: types.Message):
     plan = user["plan"]
     used = user.get("used", 0)
     remaining = max(0, 5 - used)
-
     if plan == "free":
         text = (
             f"🆓 <b>Your Plan:</b> Free\n"
             f"❓ Questions used: {used}/5\n"
-            "💬 You can still type your own custom questions anytime!\n"
-            "✨ Upgrade for faster and more powerful answers."
+            "💬 You can still type your own questions.\n"
+            "✨ Upgrade for faster and unlimited answers!"
         )
     else:
         renewal = user.get("renewal", "Next month")
         text = (
             f"💎 <b>Your Plan:</b> {plan.title()}\n"
             f"🔁 Renewal: {renewal}\n"
-            "⚡ Enjoy unlimited smart questions and instant AI chat."
+            "⚡ Enjoy unlimited smart questions & instant AI chat!"
         )
     await message.answer(text)
 
 @dp.message(Command("questions"))
 async def cmd_questions(message: types.Message):
     await message.answer("🧠 Choose your plan:", reply_markup=get_plan_keyboard())
-# ====== Callback Query Handlers ======
+
+# ====== Callback Handlers ======
 @dp.callback_query()
 async def handle_callbacks(callback: types.CallbackQuery):
     user_id = callback.from_user.id
@@ -166,8 +167,10 @@ async def handle_callbacks(callback: types.CallbackQuery):
         for cat in ["business", "ai", "crypto"]:
             if data == f"{plan}_{cat}":
                 if plan != "free" and user["plan"] == "free":
-                    await callback.message.edit_text("🔒 This section is locked. Upgrade to unlock premium content!",
-                                                     reply_markup=get_upgrade_keyboard())
+                    await callback.message.edit_text(
+                        "🔒 This section is locked. Upgrade to unlock premium content!",
+                        reply_markup=get_upgrade_keyboard()
+                    )
                     return
                 await callback.message.edit_text(
                     f"📂 {cat.title()} – Choose Level:",
@@ -180,7 +183,7 @@ async def handle_callbacks(callback: types.CallbackQuery):
         for cat in ["business", "ai", "crypto"]:
             for level in ["starter", "profit"]:
                 if data == f"{plan}_{cat}_{level}":
-                    questions = QUESTIONS[plan][cat][level]
+                    questions = QUESTIONS[cat][plan][level]  # ✅ fixed index order
                     keyboard = InlineKeyboardMarkup(inline_keyboard=[
                         [InlineKeyboardButton(text=q[:70], callback_data=f"ask_{q}")] for q in questions
                     ] + [[InlineKeyboardButton(text="⬅ Back", callback_data=f"{plan}_{cat}")]])
@@ -213,7 +216,7 @@ async def handle_callbacks(callback: types.CallbackQuery):
         except Exception as e:
             await callback.message.answer(f"❌ Error: {e}")
 
-# ===== Custom User Questions =====
+# ===== User Messages =====
 @dp.message()
 async def handle_user_message(message: types.Message):
     text = message.text.strip()
@@ -229,7 +232,7 @@ async def handle_user_message(message: types.Message):
     except Exception as e:
         await message.answer(f"❌ Error: {e}")
 
-# ===== Daily Motivational Quote =====
+# ===== Motivational Quotes Rotation =====
 async def send_daily_quote():
     while True:
         now = datetime.utcnow()
@@ -238,14 +241,15 @@ async def send_daily_quote():
             target += timedelta(days=1)
         await asyncio.sleep((target - now).total_seconds())
 
+        quote = random.choice(MOTIVATIONAL_QUOTES)
         for user_id in USERS.keys():
-            await bot.send_message(user_id, "💪 Remember: Small steps daily create unstoppable momentum!")
+            await bot.send_message(user_id, quote)
 
 # ===== Health Check =====
 async def handle_health(request):
     return web.Response(text="OK")
 
-# ===== Main Webhook Setup =====
+# ===== Main Setup =====
 async def on_startup(app):
     await bot.set_webhook(WEBHOOK_URL)
     asyncio.create_task(send_daily_quote())
@@ -261,5 +265,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
