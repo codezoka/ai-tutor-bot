@@ -340,6 +340,9 @@ def main():
     app.on_shutdown.append(on_shutdown)
     setup_application(app, dp, bot=bot)
 
+    # Add this health check route
+    app.router.add_get("/", lambda request: web.json_response({"status": "ok"}))
+
     port = int(os.getenv("PORT", 8080))
     web.run_app(app, host="0.0.0.0", port=port)
 
