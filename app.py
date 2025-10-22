@@ -25,7 +25,13 @@ ELITE_MONTHLY_URL = os.getenv("ELITE_MONTHLY_URL")
 ELITE_YEARLY_URL = os.getenv("ELITE_YEARLY_URL")
 
 # ===== Initialize Bot =====
-bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
+from aiogram.client.default import DefaultBotProperties
+
+bot = Bot(
+    token=BOT_TOKEN,
+    default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+)
+
 dp = Dispatcher(storage=MemoryStorage())
 openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
