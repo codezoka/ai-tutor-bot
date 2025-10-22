@@ -326,11 +326,21 @@ async def handle_health(request):
 def main():
     app = web.Application()
     app.router.add_get("/", handle_health)
+
     from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-    SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="/webhook")
+
+    # ✅ Proper handler registration for Aiogram v3
+    webhook_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
+    webhook_handler.register(app, path="/webhook")
+
+    # Startup and shutdown hooks
     app.on_startup.append(on_startup)
     app.on_shutdown.append(on_shutdown)
+
+    # Properly link dispatcher to app
     setup_application(app, dp, bot=bot)
+
+    print(f"🚀 Bot is now running with webhook: {WEBHOOK_URL}")
     web.run_app(app, host="0.0.0.0", port=PORT)
 
 if __name__ == "__main__":
