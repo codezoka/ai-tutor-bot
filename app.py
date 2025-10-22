@@ -241,14 +241,19 @@ async def on_shutdown(app):
 # 🌐 Webhook app setup
 def main():
     app = web.Application()
-    dp.include_router(dp)
 
-    app.router.add_get("/", health_check)  # ✅ Health check for DigitalOcean
+    # ✅ Health check route for DigitalOcean
+    app.router.add_get("/", health_check)
+
+    # ✅ Register webhook handler
     webhook_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     webhook_handler.register(app, path="/webhook")
 
+    # ✅ Lifecycle hooks
     app.on_startup.append(on_startup)
     app.on_shutdown.append(on_shutdown)
+
+    # ✅ Final setup
     setup_application(app, dp, bot=bot)
 
     port = int(os.getenv("PORT", 8080))
