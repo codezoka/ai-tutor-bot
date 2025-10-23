@@ -329,10 +329,9 @@ def main():
 
     from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
-    # ✅ Proper handler registration for Aiogram v3
+    # ✅ Register webhook correctly (no duplicate)
     webhook_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     webhook_handler.register(app, path="/webhook")
-    app.router.add_post("/webhook", webhook_handler.handle)  # ← fixed indentation here
 
     # Startup and shutdown hooks
     app.on_startup.append(on_startup)
@@ -347,6 +346,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
