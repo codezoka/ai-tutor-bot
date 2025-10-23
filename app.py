@@ -205,7 +205,7 @@ async def handle_callbacks(callback: types.CallbackQuery):
                                                      reply_markup=keyboard)
                     return
 
-      # Ask AI — with real-time streaming
+          # Ask AI — with real-time streaming
     if data.startswith("ask_"):
         question = data.replace("ask_", "")
         user = USERS[user_id]
@@ -243,6 +243,7 @@ async def handle_callbacks(callback: types.CallbackQuery):
 
         except Exception as e:
             await callback.message.answer(f"❌ Error: {e}")
+
 
 
 
