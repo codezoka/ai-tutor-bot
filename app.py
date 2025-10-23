@@ -205,28 +205,46 @@ async def handle_callbacks(callback: types.CallbackQuery):
                                                      reply_markup=keyboard)
                     return
 
-    # Ask AI
-    if data.startswith("ask_"):
-        question = data.replace("ask_", "")
-        user = USERS[user_id]
-        plan = user.get("plan", "free")
-        if plan == "free" and user["used"] >= 5:
-            await callback.message.answer("⚠️ You reached your 5-question limit. Upgrade for unlimited access!",
-                                          reply_markup=get_upgrade_keyboard())
-            return
-        USERS[user_id]["used"] += 1
-        update_usage(user_id)
-        await callback.message.answer("🤖 Thinking...")
-        try:
-            response = await openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": question}]
-            )
-            tokens = response.usage.total_tokens if hasattr(response, "usage") else 0
-            log_tokens(user_id, tokens)
-            await callback.message.answer(response.choices[0].message.content)
-        except Exception as e:
-            await callback.message.answer(f"❌ Error: {e}")
+   # Ask AI — with real-time streaming
+if data.startswith("ask_"):
+    question = data.replace("ask_", "")
+    user = USERS[user_id]
+    plan = user.get("plan", "free")
+
+    if plan == "free" and user["used"] >= 5:
+        await callback.message.answer(
+            "⚠️ You reached your 5-question limit. Upgrade for unlimited access!",
+            reply_markup=get_upgrade_keyboard()
+        )
+        return
+
+    USERS[user_id]["used"] += 1
+    update_usage(user_id)
+
+    msg = await callback.message.answer("🤖 Thinking...")
+
+    try:
+        response_text = ""
+        stream = await openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": question}],
+            stream=True
+        )
+
+        async for event in stream:
+            if hasattr(event, "choices") and event.choices:
+                delta = event.choices[0].delta
+                if delta and getattr(delta, "content", None):
+                    response_text += delta.content
+                    if len(response_text) % 30 == 0:  # update every ~30 chars
+                        await bot.edit_message_text(response_text, msg.chat.id, msg.message_id)
+
+        # Final update
+        await bot.edit_message_text(response_text, msg.chat.id, msg.message_id)
+
+    except Exception as e:
+        await callback.message.answer(f"❌ Error: {e}")
+
 
 # ===== Admin Dashboard with Export =====
 ADMIN_ID = 5722976786  # Replace with your Telegram user ID
