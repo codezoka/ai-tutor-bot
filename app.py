@@ -332,7 +332,7 @@ def main():
     # ✅ Proper handler registration for Aiogram v3
     webhook_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     webhook_handler.register(app, path="/webhook")
-   app.router.add_post("/webhook", webhook_handler.handle)
+    app.router.add_post("/webhook", webhook_handler.handle)  # ← fixed indentation here
 
     # Startup and shutdown hooks
     app.on_startup.append(on_startup)
@@ -344,7 +344,9 @@ def main():
     print(f"🚀 Bot is now running with webhook: {WEBHOOK_URL}")
     web.run_app(app, host="0.0.0.0", port=PORT)
 
+
 if __name__ == "__main__":
     main()
+
 
 
