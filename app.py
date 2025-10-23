@@ -166,57 +166,81 @@ async def cmd_status(message: types.Message):
 async def cmd_questions(message: types.Message):
     await message.answer("🧠 Choose your plan:", reply_markup=get_plan_keyboard())
 
-# ====== Callback Handling ======
+# ====== Callback Handling (Improved Back Buttons & Full Question Text) ======
 @dp.callback_query()
 async def handle_callbacks(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     data = callback.data
     user = USERS.setdefault(user_id, {"plan": "free", "used": 0})
 
-    # Plan Selection
+    # ===== Plan Selection =====
     if data.startswith("plan_"):
         plan = data.split("_")[1]
-        await callback.message.edit_text(f"📚 <b>{plan.title()} Plan Selected!</b>\nChoose a category:",
-                                         reply_markup=get_category_keyboard(plan))
+        await callback.message.edit_text(
+            f"📚 <b>{plan.title()} Plan Selected!</b>\nChoose a category:",
+            reply_markup=get_category_keyboard(plan)
+        )
         return
 
-    # Category → Level
+    # ===== Category → Level =====
     for plan in ["free", "pro", "elite"]:
         for cat in ["business", "ai", "crypto"]:
             if data == f"{plan}_{cat}":
                 if plan != "free" and user["plan"] == "free":
-                    await callback.message.edit_text("🔒 Locked! Upgrade to unlock premium content.",
-                                                     reply_markup=get_upgrade_keyboard())
+                    await callback.message.edit_text(
+                        "🔒 This section is locked. Upgrade to unlock premium content!",
+                        reply_markup=get_upgrade_keyboard()
+                    )
                     return
-                await callback.message.edit_text(f"📂 {cat.title()} – Choose Level:",
-                                                 reply_markup=get_level_keyboard(plan, cat))
+                await callback.message.edit_text(
+                    f"📂 {cat.title()} – Choose Level:",
+                    reply_markup=get_level_keyboard(plan, cat)
+                )
                 return
 
-    # Level → Questions
+    # ===== Level → Questions =====
     for plan in ["free", "pro", "elite"]:
         for cat in ["business", "ai", "crypto"]:
             for level in ["starter", "profit"]:
                 if data == f"{plan}_{cat}_{level}":
                     questions = QUESTIONS[cat][plan][level]
                     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                        [InlineKeyboardButton(text=q[:70], callback_data=f"ask_{q}")] for q in questions
-                    ] + [[InlineKeyboardButton(text="⬅ Back", callback_data=f"{plan}_{cat}")]])
-                    await callback.message.edit_text(f"💬 {cat.title()} – {level.title()} Questions:",
-                                                     reply_markup=keyboard)
+                        [InlineKeyboardButton(text=q if len(q) < 110 else q[:107] + "…", callback_data=f"ask_{q}")]
+                        for q in questions
+                    ] + [
+                        [InlineKeyboardButton(text="⬅ Back to Levels", callback_data=f"{plan}_{cat}")],
+                        [InlineKeyboardButton(text="🏠 Back to Plans", callback_data="back_to_plans")]
+                    ])
+                    await callback.message.edit_text(
+                        f"💬 {cat.title()} – {level.title()} Questions:",
+                        reply_markup=keyboard
+                    )
                     return
 
-    # Ask AI
+    # ===== Back Navigation =====
+    if data == "back_to_plans":
+        await callback.message.edit_text(
+            "🏠 Choose your plan:",
+            reply_markup=get_plan_keyboard()
+        )
+        return
+
+    # ===== Ask AI =====
     if data.startswith("ask_"):
         question = data.replace("ask_", "")
-        user = USERS[user_id]
         plan = user.get("plan", "free")
+
         if plan == "free" and user["used"] >= 5:
-            await callback.message.answer("⚠️ You reached your 5-question limit. Upgrade for unlimited access!",
-                                          reply_markup=get_upgrade_keyboard())
+            await callback.message.answer(
+                "⚠️ You’ve reached your 5-question limit.\nUpgrade for unlimited smart insights!",
+                reply_markup=get_upgrade_keyboard()
+            )
             return
-        USERS[user_id]["used"] += 1
+
+        user["used"] += 1
         update_usage(user_id)
         await callback.message.answer("🤖 Thinking...")
+
         try:
             response = await openai_client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -227,6 +251,7 @@ async def handle_callbacks(callback: types.CallbackQuery):
             await callback.message.answer(response.choices[0].message.content)
         except Exception as e:
             await callback.message.answer(f"❌ Error: {e}")
+
 
 # ===== Admin Dashboard with Export =====
 ADMIN_ID = 5722976786  # Replace with your Telegram user ID
@@ -346,7 +371,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
 
