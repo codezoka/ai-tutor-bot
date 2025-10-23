@@ -256,24 +256,27 @@ async def handle_callbacks(callback: types.CallbackQuery):
                                                  reply_markup=get_level_keyboard(plan, cat))
                 return
 
-    # ===== Level → Questions =====
+       # ===== Level → Questions =====
     for plan in ["free", "pro", "elite"]:
+     for cat in ["business", "ai", "crypto"]:
+            for level in ["starter", "profit"]:
+                if data == f"{plan}_{cat}_{level}":
+                    questions = QUESTIONS[cat][plan][level]
+                    keyboard = InlineKeyboardMarkup(
+                        inline_keyboard=[
+                            [InlineKeyboardButton(text=q[:200], callback_data=f"ask_{q}")]
+                            for q in questions
+                        ] + [
+                            [InlineKeyboardButton(text="⬅ Back to Levels", callback_data=f"back_to_{plan}_{cat}")],
+                            [InlineKeyboardButton(text="🏠 Back to Plans", callback_data="back_to_plans")]
+                        ]
+                    )
+                    await callback.message.edit_text(
+                        f"💬 {cat.title()} – {level.title()} Questions:",
+                        reply_markup=keyboard
+                    )
+                    return
 
-    for cat in ["business", "ai", "crypto"]:
-        for level in ["starter", "profit"]:
-            if data == f"{plan}_{cat}_{level}":
-                questions = QUESTIONS[cat][plan][level]
-                keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                    [InlineKeyboardButton(text=q[:200], callback_data=f"ask_{q}")] for q in questions
-                ] + [
-                    [InlineKeyboardButton(text="⬅ Back to Levels", callback_data=f"{plan}_{cat}")],
-                    [InlineKeyboardButton(text="🏠 Back to Plans", callback_data="back_to_plans")]
-                ])
-                await callback.message.edit_text(
-                    f"💬 {cat.title()} – {level.title()} Questions:",
-                    reply_markup=keyboard
-                )
-                return
 
 
 # ===== Back Navigation (Improved) =====
