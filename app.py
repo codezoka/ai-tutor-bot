@@ -165,70 +165,6 @@ async def cmd_status(message: types.Message):
 @dp.message(Command("questions"))
 async def cmd_questions(message: types.Message):
     await message.answer("🧠 Choose your plan:", reply_markup=get_plan_keyboard())
-# ===== User Chat with Memory + Streaming =====
-from collections import defaultdict
-user_memory = defaultdict(list)  # Store chat history per user
-
-@dp.message()
-async def handle_user_message(message: types.Message):
-    user_id = message.from_user.id
-    user = USERS.setdefault(user_id, {"plan": "free", "used": 0})
-    plan = user.get("plan", "free")
-
-    # Free users limit
-    if plan == "free" and user["used"] >= 5:
-        await message.answer(
-            "⚠️ You’ve reached your 5-question limit.\nUpgrade to continue learning smarter 💡",
-            reply_markup=get_upgrade_keyboard()
-        )
-        return
-
-    user["used"] += 1
-    update_usage(user_id)
-
-    prompt = message.text.strip()
-    if not prompt:
-        await message.answer("❓ Please type something meaningful.")
-        return
-
-    # Save user message in memory
-    user_memory[user_id].append({"role": "user", "content": prompt})
-    if len(user_memory[user_id]) > 10:  # keep memory small
-        user_memory[user_id] = user_memory[user_id][-10:]
-
-    await bot.send_chat_action(chat_id=message.chat.id, action="typing")
-    thinking_msg = await message.answer("🤖 Thinking...")
-
-    try:
-        # 🔹 Stream OpenAI response with context
-        stream = await openai_client.chat.completions.stream(
-            model="gpt-4o-mini",
-            messages=user_memory[user_id]  # includes chat history
-        )
-
-        reply = ""
-        async for event in stream:
-            if event.type == "message.delta" and hasattr(event.delta, "content"):
-                chunk = event.delta.content
-                reply += chunk
-                if len(reply) % 40 == 0:
-                    await thinking_msg.edit_text(reply + "▌")
-
-        await stream.aclose()
-        await thinking_msg.edit_text(reply)
-
-        # Store AI response in memory
-        user_memory[user_id].append({"role": "assistant", "content": reply})
-
-        # Log tokens
-        try:
-            tokens = event.response.usage.total_tokens
-            log_tokens(user_id, tokens)
-        except:
-            pass
-
-    except Exception as e:
-        await message.answer(f"❌ Error: {e}")
 
 # ====== Callback Handling ======
 @dp.callback_query()
@@ -256,104 +192,41 @@ async def handle_callbacks(callback: types.CallbackQuery):
                                                  reply_markup=get_level_keyboard(plan, cat))
                 return
 
-       # ===== Level → Questions =====
+    # Level → Questions
     for plan in ["free", "pro", "elite"]:
-     for cat in ["business", "ai", "crypto"]:
+        for cat in ["business", "ai", "crypto"]:
             for level in ["starter", "profit"]:
                 if data == f"{plan}_{cat}_{level}":
                     questions = QUESTIONS[cat][plan][level]
-                    keyboard = InlineKeyboardMarkup(
-                        inline_keyboard=[
-                            [InlineKeyboardButton(text=q[:200], callback_data=f"ask_{q}")]
-                            for q in questions
-                        ] + [
-                            [InlineKeyboardButton(text="⬅ Back to Levels", callback_data=f"back_to_{plan}_{cat}")],
-                            [InlineKeyboardButton(text="🏠 Back to Plans", callback_data="back_to_plans")]
-                        ]
-                    )
-                    await callback.message.edit_text(
-                        f"💬 {cat.title()} – {level.title()} Questions:",
-                        reply_markup=keyboard
-                    )
+                    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                        [InlineKeyboardButton(text=q[:70], callback_data=f"ask_{q}")] for q in questions
+                    ] + [[InlineKeyboardButton(text="⬅ Back", callback_data=f"{plan}_{cat}")]])
+                    await callback.message.edit_text(f"💬 {cat.title()} – {level.title()} Questions:",
+                                                     reply_markup=keyboard)
                     return
 
-
-
-# ===== Back Navigation (Improved) =====
-if data.startswith("back_to_"):
-    parts = data.split("_")
-    if data == "back_to_plans":
-        await callback.message.edit_text("🏠 Choose your plan:",
-                                         reply_markup=get_plan_keyboard())
-    elif len(parts) == 3:
-        # Example: back_to_pro → go back to category
-        plan = parts[2]
-        await callback.message.edit_text(
-            f"📚 {plan.title()} Plan 🗂️ Choose a category:",
-            reply_markup=get_category_keyboard(plan)
-        )
-    elif len(parts) == 4:
-        # Example: back_to_pro_ai → go back to level selection
-        plan, cat = parts[2], parts[3]
-        await callback.message.edit_text(
-            f"📂 {cat.title()} – Choose Level:",
-            reply_markup=get_level_keyboard(plan, cat)
-        )
-    return
-
-
-# ===== Ask AI (Streaming Replies) =====
-if data.startswith("ask_"):
-    question = data.replace("ask_", "")
-    user = USERS[user_id]
-    plan = user.get("plan", "free")
-
-    # Free plan usage check
-    if plan == "free" and user["used"] >= 5:
-        await callback.message.answer(
-            "⚠️ You’ve reached your 5-question limit.\nUpgrade for unlimited smart insights!",
-            reply_markup=get_upgrade_keyboard()
-        )
-        return
-
-    USERS[user_id]["used"] += 1
-    update_usage(user_id)
-
-    # ✨ Send "typing" indicator
-    await bot.send_chat_action(chat_id=callback.message.chat.id, action="typing")
-    thinking_msg = await callback.message.answer("🤖 Thinking...")
-
-    try:
-        # 🔹 Stream OpenAI response word-by-word
-        stream = await openai_client.chat.completions.stream(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": question}]
-        )
-
-        full_reply = ""
-        async for event in stream:
-            if event.type == "message.delta" and hasattr(event.delta, "content"):
-                chunk = event.delta.content
-                full_reply += chunk
-                # Update user message every few tokens for smooth effect
-                if len(full_reply) % 40 == 0:
-                    await thinking_msg.edit_text(full_reply + "▌")
-
-        # Close stream and send the final complete message
-        await stream.aclose()
-        await thinking_msg.edit_text(full_reply)
-
-        # Token logging (optional)
+    # Ask AI
+    if data.startswith("ask_"):
+        question = data.replace("ask_", "")
+        user = USERS[user_id]
+        plan = user.get("plan", "free")
+        if plan == "free" and user["used"] >= 5:
+            await callback.message.answer("⚠️ You reached your 5-question limit. Upgrade for unlimited access!",
+                                          reply_markup=get_upgrade_keyboard())
+            return
+        USERS[user_id]["used"] += 1
+        update_usage(user_id)
+        await callback.message.answer("🤖 Thinking...")
         try:
-            tokens = event.response.usage.total_tokens
+            response = await openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": question}]
+            )
+            tokens = response.usage.total_tokens if hasattr(response, "usage") else 0
             log_tokens(user_id, tokens)
-        except:
-            pass
-
-    except Exception as e:
-        await callback.message.answer(f"❌ Error: {e}")
-
-
+            await callback.message.answer(response.choices[0].message.content)
+        except Exception as e:
+            await callback.message.answer(f"❌ Error: {e}")
 
 # ===== Admin Dashboard with Export =====
 ADMIN_ID = 5722976786  # Replace with your Telegram user ID
@@ -473,6 +346,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
 
 
 
