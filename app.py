@@ -232,14 +232,24 @@ async def handle_callbacks(callback: types.CallbackQuery):
             )
 
             async for event in stream:
-                if hasattr(event, "choices") and event.choices:
-                    delta = event.choices[0].delta
-                    if delta and getattr(delta, "content", None):
-                        response_text += delta.content
-                        if len(response_text) % 30 == 0:
-                            await bot.edit_message_text(response_text, msg.chat.id, msg.message_id)
+                
+    if hasattr(event, "choices") and event.choices:
+        delta = event.choices[0].delta
+        if delta and getattr(delta, "content", None):
+            response_text += delta.content
+            if len(response_text) % 30 == 0:
+                await bot.edit_message_text(
+                    chat_id=msg.chat.id,
+                    message_id=msg.message_id,
+                    text=response_text
+                )
 
-            await bot.edit_message_text(response_text, msg.chat.id, msg.message_id)
+await bot.edit_message_text(
+    chat_id=msg.chat.id,
+    message_id=msg.message_id,
+    text=response_text
+)
+
 
         except Exception as e:
             await callback.message.answer(f"❌ Error: {e}")
