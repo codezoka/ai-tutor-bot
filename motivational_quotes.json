@@ -1,7 +1,6 @@
 {
-  quote = random.choice(MOTIVATIONAL_QUOTES["quotes"])
- [ 
-  "🚀 The only limit to your success is the action you take today.",
+  "quotes": [
+    "🚀 The only limit to your success is the action you take today.",
     "💡 Think big. Start small. Move fast.",
     "🔥 Dreams don't work unless you do.",
     "💰 Every expert was once a beginner who didn’t quit.",
@@ -53,4 +52,3 @@
     "💡 Ask better questions. Get better answers. Build a better life."
   ]
 }
-
