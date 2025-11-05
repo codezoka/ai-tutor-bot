@@ -223,36 +223,36 @@ async def handle_callbacks(callback: types.CallbackQuery):
 
         msg = await callback.message.answer("🤖 Thinking...")
 
-        try:
-            response_text = ""
-            stream = await openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": question}],
-                stream=True
-            )
+    
+try:
+    response_text = ""
+    stream = await openai_client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": question}],
+        stream=True
+    )
 
-            async for event in stream:
-                
-    if hasattr(event, "choices") and event.choices:
-        delta = event.choices[0].delta
-        if delta and getattr(delta, "content", None):
-            response_text += delta.content
-            if len(response_text) % 30 == 0:
-                await bot.edit_message_text(
-                    chat_id=msg.chat.id,
-                    message_id=msg.message_id,
-                    text=response_text
-                )
+    async for event in stream:
+        if hasattr(event, "choices") and event.choices:
+            delta = event.choices[0].delta
+            if delta and getattr(delta, "content", None):
+                response_text += delta.content
+                if len(response_text) % 30 == 0:
+                    await bot.edit_message_text(
+                        chat_id=msg.chat.id,
+                        message_id=msg.message_id,
+                        text=response_text
+                    )
 
-await bot.edit_message_text(
-    chat_id=msg.chat.id,
-    message_id=msg.message_id,
-    text=response_text
-)
+    await bot.edit_message_text(
+        chat_id=msg.chat.id,
+        message_id=msg.message_id,
+        text=response_text
+    )
 
+except Exception as e:
+    await callback.message.answer(f"❌ Error: {e}")
 
-        except Exception as e:
-            await callback.message.answer(f"❌ Error: {e}")
 
 
 
