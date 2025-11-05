@@ -261,6 +261,56 @@ async def handle_callbacks(callback: types.CallbackQuery):
         except Exception as e:
             await callback.message.answer(f"❌ Error: {e}")
 
+# ===== Free Text Message Handling =====
+@dp.message()
+async def handle_free_text(message: types.Message):
+    user_id = message.from_user.id
+    text = message.text
+
+    # Track free users & usage
+    user = USERS.setdefault(user_id, {"plan": "free", "used": 0})
+    plan = user.get("plan", "free")
+
+    if plan == "free" and user["used"] >= 5:
+        await message.answer(
+            "⚠️ You reached your 5-question limit. Upgrade for unlimited access!",
+            reply_markup=get_upgrade_keyboard()
+        )
+        return
+
+    USERS[user_id]["used"] += 1
+    update_usage(user_id)
+
+    msg = await message.answer("🤖 Thinking...")
+
+    try:
+        response_text = ""
+        stream = await openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": text}],
+            stream=True
+        )
+
+        async for event in stream:
+            if hasattr(event, "choices") and event.choices:
+                delta = event.choices[0].delta
+                if delta and getattr(delta, "content", None):
+                    response_text += delta.content
+                    if len(response_text) % 30 == 0:
+                        await bot.edit_message_text(
+                            chat_id=msg.chat.id,
+                            message_id=msg.message_id,
+                            text=response_text
+                        )
+
+        await bot.edit_message_text(
+            chat_id=msg.chat.id,
+            message_id=msg.message_id,
+            text=response_text
+        )
+
+    except Exception as e:
+        await message.answer(f"❌ Error: {e}")
 
 
 # ===== Admin Dashboard with Export =====
