@@ -176,8 +176,10 @@ async def handle_callbacks(callback: types.CallbackQuery):
     # Plan Selection
     if data.startswith("plan_"):
         plan = data.split("_")[1]
-        await callback.message.edit_text(f"📚 <b>{plan.title()} Plan Selected!</b>\nChoose a category:",
-                                         reply_markup=get_category_keyboard(plan))
+        await callback.message.edit_text(
+            f"📚 <b>{plan.title()} Plan Selected!</b>\nChoose a category:",
+            reply_markup=get_category_keyboard(plan)
+        )
         return
 
     # Category → Level
@@ -185,11 +187,15 @@ async def handle_callbacks(callback: types.CallbackQuery):
         for cat in ["business", "ai", "crypto"]:
             if data == f"{plan}_{cat}":
                 if plan != "free" and user["plan"] == "free":
-                    await callback.message.edit_text("🔒 Locked! Upgrade to unlock premium content.",
-                                                     reply_markup=get_upgrade_keyboard())
+                    await callback.message.edit_text(
+                        "🔒 Locked! Upgrade to unlock premium content.",
+                        reply_markup=get_upgrade_keyboard()
+                    )
                     return
-                await callback.message.edit_text(f"📂 {cat.title()} – Choose Level:",
-                                                 reply_markup=get_level_keyboard(plan, cat))
+                await callback.message.edit_text(
+                    f"📂 {cat.title()} – Choose Level:",
+                    reply_markup=get_level_keyboard(plan, cat)
+                )
                 return
 
     # Level → Questions
@@ -199,13 +205,16 @@ async def handle_callbacks(callback: types.CallbackQuery):
                 if data == f"{plan}_{cat}_{level}":
                     questions = QUESTIONS[cat][plan][level]
                     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                        [InlineKeyboardButton(text=q[:70], callback_data=f"ask_{q}")] for q in questions
+                        [InlineKeyboardButton(text=q[:70], callback_data=f"ask_{q}")]
+                        for q in questions
                     ] + [[InlineKeyboardButton(text="⬅ Back", callback_data=f"{plan}_{cat}")]])
-                    await callback.message.edit_text(f"💬 {cat.title()} – {level.title()} Questions:",
-                                                     reply_markup=keyboard)
+                    await callback.message.edit_text(
+                        f"💬 {cat.title()} – {level.title()} Questions:",
+                        reply_markup=keyboard
+                    )
                     return
 
-          # Ask AI — with real-time streaming
+    # Ask AI — with real-time streaming
     if data.startswith("ask_"):
         question = data.replace("ask_", "")
         user = USERS[user_id]
@@ -223,37 +232,34 @@ async def handle_callbacks(callback: types.CallbackQuery):
 
         msg = await callback.message.answer("🤖 Thinking...")
 
-    
-try:
-    response_text = ""
-    stream = await openai_client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": question}],
-        stream=True
-    )
+        try:
+            response_text = ""
+            stream = await openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+          messages=[{"role": "user", "content": question}],
+                stream=True
+            )
 
-    async for event in stream:
-        if hasattr(event, "choices") and event.choices:
-            delta = event.choices[0].delta
-            if delta and getattr(delta, "content", None):
-                response_text += delta.content
-                if len(response_text) % 30 == 0:
-                    await bot.edit_message_text(
-                        chat_id=msg.chat.id,
-                        message_id=msg.message_id,
-                        text=response_text
-                    )
+            async for event in stream:
+                if hasattr(event, "choices") and event.choices:
+                    delta = event.choices[0].delta
+                    if delta and getattr(delta, "content", None):
+                        response_text += delta.content
+                        if len(response_text) % 30 == 0:
+                            await bot.edit_message_text(
+                                chat_id=msg.chat.id,
+                                message_id=msg.message_id,
+                                text=response_text
+                            )
 
-    await bot.edit_message_text(
-        chat_id=msg.chat.id,
-        message_id=msg.message_id,
-        text=response_text
-    )
+            await bot.edit_message_text(
+                chat_id=msg.chat.id,
+                message_id=msg.message_id,
+                text=response_text
+            )
 
-except Exception as e:
-    await callback.message.answer(f"❌ Error: {e}")
-
-
+        except Exception as e:
+            await callback.message.answer(f"❌ Error: {e}")
 
 
 
