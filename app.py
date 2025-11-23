@@ -42,9 +42,21 @@ PAYMENT_PROVIDER_TOKEN = os.getenv("PAYMENT_PROVIDER_TOKEN")
 # ==========================================
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=MemoryStorage())
-openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
-db = None  # database connection pool
+# Fix DigitalOcean proxy issue for OpenAI
+import httpx
+from openai import AsyncOpenAI
+
+transport = httpx.AsyncHTTPTransport(retries=3)
+http_client = httpx.AsyncClient(transport=transport, follow_redirects=True)
+
+openai_client = AsyncOpenAI(
+    api_key=OPENAI_API_KEY,
+    http_client=http_client
+)
+
+db = None
+
 
 
 # ==========================================
