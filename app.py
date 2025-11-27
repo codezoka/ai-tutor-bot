@@ -1,317 +1,275 @@
 import os
-import json
 import asyncio
-from datetime import datetime
-from aiohttp import web
+from datetime import datetime, timedelta
+
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.filters import Command
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import asyncpg
-from aiogram import Bot, Dispatcher, types
-from aiogram.enums import ParseMode
-from aiogram.filters import Command
-from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.client.default import DefaultBotProperties
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
-from openai import AsyncOpenAI
-import httpx
-from dotenv import load_dotenv
-
-
-# ==========================================
-# LOAD ENVIRONMENT VARIABLES
-# ==========================================
-load_dotenv()
-
+# ----------------------------
+# ENVIRONMENT VARIABLES (SAFE)
+# ----------------------------
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL")
-PORT = int(os.getenv("PORT", 8080))
-APP_NAME = os.getenv("APP_NAME")
-WEBHOOK_URL = f"https://{APP_NAME}.ondigitalocean.app/webhook"
+CRYPTOBOT_TOKEN = os.getenv("CRYPTOBOT_TOKEN")
 
-PRO_MONTHLY_URL = os.getenv("PRO_MONTHLY_URL")
-PRO_YEARLY_URL = os.getenv("PRO_YEARLY_URL")
-ELITE_MONTHLY_URL = os.getenv("ELITE_MONTHLY_URL")
-ELITE_YEARLY_URL = os.getenv("ELITE_YEARLY_URL")
+# Payment invoice IDs (from CryptoBot)
+SMART_MONTHLY = "IVoOKgk2Ik7W"
+GENIUS_MONTHLY = "IV20WdvjUVgB"
+SMART_YEARLY = "IVBOLLq0SGII"
+GENIUS_YEARLY = "IVt9617C1w6j"
 
+WEBHOOK_URL = f"https://ai-tutor-bot-83opf.ondigitalocean.app/webhook"
 
-# ==========================================
+# ----------------------------
 # INITIALIZE BOT
-# ==========================================
-bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher(storage=MemoryStorage())
+# ----------------------------
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
 
-# Fix DigitalOcean proxy issue for OpenAI
-transport = httpx.AsyncHTTPTransport(retries=3)
-http_client = httpx.AsyncClient(transport=transport, follow_redirects=True)
-openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY, http_client=http_client)
-
-db = None
+# ----------------------------
+# FASTAPI for webhook
+# ----------------------------
+app = FastAPI()
 
 
-# ==========================================
-# LOAD PROMPTS
-# ==========================================
-with open("prompts.json", "r", encoding="utf-8") as f:
-    QUESTIONS = json.load(f)
+# ----------------------------
+# CONNECT TO POSTGRES
+# ----------------------------
+async def connect_db():
+    return await asyncpg.connect(DATABASE_URL)
 
 
-# ==========================================
-# MIGRATIONS
-# ==========================================
-async def run_migrations():
-    async with db.acquire() as conn:
-        await conn.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id BIGINT PRIMARY KEY,
-                username TEXT,
-                plan TEXT DEFAULT 'free',
-                used INTEGER DEFAULT 0,
-                tokens_used INTEGER DEFAULT 0
-            );
-        """)
-        print("✅ PostgreSQL migration completed.")
+async def ensure_tables():
+    conn = await connect_db()
+    await conn.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            user_id BIGINT PRIMARY KEY,
+            plan TEXT DEFAULT 'free',
+            free_used INT DEFAULT 0,
+            created_at TIMESTAMP DEFAULT NOW(),
+            premium_until TIMESTAMP
+        );
+    """)
+    await conn.close()
 
 
-# ==========================================
-# DB FUNCTIONS
-# ==========================================
-async def save_user(uid, username):
-    async with db.acquire() as conn:
-        await conn.execute("""
-            INSERT INTO users (id, username)
-            VALUES ($1, $2)
-            ON CONFLICT (id) DO NOTHING;
-        """, uid, username)
+# ----------------------------
+# MENU BUTTONS
+# ----------------------------
 
-
-async def get_user(uid):
-    async with db.acquire() as conn:
-        row = await conn.fetchrow("SELECT * FROM users WHERE id=$1;", uid)
-        return dict(row) if row else None
-
-
-async def increment_usage(uid):
-    async with db.acquire() as conn:
-        await conn.execute("UPDATE users SET used = used + 1 WHERE id=$1;", uid)
-
-
-# ==========================================
-# MODEL SELECTION
-# ==========================================
-def model_for_plan(plan):
-    return "gpt-4o" if plan in ("pro", "elite") else "gpt-4o-mini"
-
-
-# ==========================================
-# KEYBOARDS
-# ==========================================
-def upgrade_keyboard():
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="⚡ Pro — $9.99/mo", url=PRO_MONTHLY_URL)],
-        [InlineKeyboardButton(text="⚡ Pro — $99/yr (Save 20%)", url=PRO_YEARLY_URL)],
-        [InlineKeyboardButton(text="🚀 Elite — $19.99/mo", url=ELITE_MONTHLY_URL)],
-        [InlineKeyboardButton(text="🚀 Elite — $199/yr (Save 20%)", url=ELITE_YEARLY_URL)],
-        [InlineKeyboardButton(text="⬅ Back", callback_data="back_home")]
-    ])
-
-
-# ==========================================
-# START COMMAND
-# ==========================================
-@dp.message(Command("start"))
-async def cmd_start(message: types.Message):
-    await save_user(message.from_user.id, message.from_user.username)
-
+def main_menu():
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="💼 Business", callback_data="cat_business")],
-        [InlineKeyboardButton(text="🤖 AI & Tech", callback_data="cat_ai")],
+        [InlineKeyboardButton(text="🧠 AI & Tech", callback_data="cat_ai")],
         [InlineKeyboardButton(text="💰 Crypto", callback_data="cat_crypto")],
-        [InlineKeyboardButton(text="⚡ Upgrade Plans", callback_data="open_plans")]
+        [InlineKeyboardButton(text="⚡ Upgrade Premium", callback_data="upgrade")]
     ])
+    return kb
 
+
+def upgrade_menu():
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⚡ Smart Monthly — $9.99", callback_data="pay_smart_month")],
+        [InlineKeyboardButton(text="⚡ Smart Yearly — $79.99", callback_data="pay_smart_year")],
+        [InlineKeyboardButton(text="🚀 Genius Monthly — $19.99", callback_data="pay_genius_month")],
+        [InlineKeyboardButton(text="🚀 Genius Yearly — $149.99", callback_data="pay_genius_year")],
+        [InlineKeyboardButton(text="🔙 Back", callback_data="back_to_menu")]
+    ])
+    return kb
+
+
+# ----------------------------
+# HELPER FUNCTIONS
+# ----------------------------
+
+async def get_user(user_id):
+    conn = await connect_db()
+    user = await conn.fetchrow("SELECT * FROM users WHERE user_id=$1", user_id)
+    if not user:
+        await conn.execute("INSERT INTO users (user_id) VALUES ($1)", user_id)
+        user = await conn.fetchrow("SELECT * FROM users WHERE user_id=$1", user_id)
+    await conn.close()
+    return user
+
+
+async def increase_free_count(user_id):
+    conn = await connect_db()
+    await conn.execute("UPDATE users SET free_used = free_used + 1 WHERE user_id = $1", user_id)
+    await conn.close()
+
+
+async def set_plan(user_id, plan, days=30):
+    conn = await connect_db()
+    premium_until = datetime.utcnow() + timedelta(days=days)
+    await conn.execute("UPDATE users SET plan=$1, premium_until=$2 WHERE user_id=$3",
+                       plan, premium_until, user_id)
+    await conn.close()
+
+
+# ----------------------------
+# BOT COMMANDS
+# ----------------------------
+
+@dp.message(Command("start"))
+async def start(message: types.Message):
     await message.answer(
-        "🤖 <b>Welcome to AI Tutor!</b>\nChoose a category.",
-        reply_markup=kb
+        "🤖 Welcome to AskSmartAI!\n\n"
+        "Think smarter. Learn faster. Ask better questions.\n\n"
+        "Choose a category or type your own question anytime.",
+        reply_markup=main_menu()
     )
 
 
-# ==========================================
-# CALLBACK HANDLER
-# ==========================================
-@dp.callback_query()
-async def cb_handler(cb: types.CallbackQuery):
-    uid = cb.from_user.id
-    data = cb.data
+@dp.message(Command("help"))
+async def help_cmd(message: types.Message):
+    await message.answer(
+        "👋 **How to Use AskSmartAI**\n\n"
+        "• /start — Open the main menu\n"
+        "• /questions — Smart categories\n"
+        "• /upgrade — View premium plans\n"
+        "• /status — Check your limits\n\n"
+        "💡 You can ALWAYS type your own questions for free.\n"
+        "Premium unlocks unlimited smart prompts."
+    )
 
-    user = await get_user(uid)
-    plan = user.get("plan", "free")
-    used = user.get("used", 0)
 
-    # CATEGORY SELECTION
-    if data.startswith("cat_"):
-        cat = data.split("_")[1]
-        kb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="🌱 Starter", callback_data=f"lvl|{cat}|starter")],
-            [InlineKeyboardButton(text="💼 Profit", callback_data=f"lvl|{cat}|profit")],
-            [InlineKeyboardButton(text="⬅ Back", callback_data="back_home")]
-        ])
-        await cb.message.edit_text(f"📘 <b>{cat.title()} Questions</b>\nChoose level:", reply_markup=kb)
-        return
+@dp.message(Command("status"))
+async def status(message: types.Message):
+    user = await get_user(message.from_user.id)
 
-    # LEVEL
-    if data.startswith("lvl|"):
-        _, cat, level = data.split("|")
-
-        # Profit locked
-        if plan == "free" and level == "profit":
-            await cb.message.edit_text(
-                "🔒 Profit level is for Pro/Elite only.",
-                reply_markup=upgrade_keyboard()
-            )
-            return
-
-        # Starter but limit reached
-        if plan == "free" and level == "starter" and used >= 5:
-            await cb.message.edit_text(
-                "🔒 You reached your free category limit (5).\n"
-                "You can still type your own questions anytime 😊",
-                reply_markup=upgrade_keyboard()
-            )
-            return
-
-        # Show questions
-        questions = QUESTIONS[cat][plan][level]
-        kb = []
-        for i, q in enumerate(questions):
-            kb.append([InlineKeyboardButton(text=q[:40], callback_data=f"ask|{cat}|{level}|{i}")])
-        kb.append([InlineKeyboardButton(text="⬅ Back", callback_data=f"cat_{cat}")])
-
-        await cb.message.edit_text(f"🧠 {cat.title()} – {level.title()} Questions:", reply_markup=InlineKeyboardMarkup(inline_keyboard=kb))
-        return
-
-    # ASK QUESTION
-    if data.startswith("ask|"):
-        _, cat, level, idx = data.split("|")
-        idx = int(idx)
-
-        user = await get_user(uid)
-        plan = user["plan"]
-        used = user["used"]
-
-        # Limit reached
-        if plan == "free" and used >= 5:
-            await cb.message.answer(
-                "🔒 You reached your free category limit.\n"
-                "You can still type your own questions anytime 😊",
-                reply_markup=upgrade_keyboard()
-            )
-            return
-
-        # Count only category questions
-        await increment_usage(uid)
-
-        question = QUESTIONS[cat][plan][level][idx]
-        msg = await cb.message.answer("🤖 Thinking…")
-
-        reply = ""
-        stream = await openai_client.chat.completions.create(
-            model=model_for_plan(plan),
-            messages=[{"role": "user", "content": question}],
-            stream=True
+    if user["plan"] == "free":
+        await message.answer(
+            f"📊 **Your Status**\n\n"
+            f"Smart Questions used: {user['free_used']}/5\n"
+            f"Typed questions: Unlimited\n\n"
+            f"🔥 Upgrade to unlock unlimited Smart Questions.",
+            reply_markup=upgrade_menu()
+        )
+    else:
+        await message.answer(
+            f"🎉 You are on the **{user['plan'].capitalize()} Plan**!\n"
+            f"Unlimited Smart Questions.\n"
+            f"Premium active until: {user['premium_until']}"
         )
 
-        async for event in stream:
-            if hasattr(event, "choices") and event.choices:
-                delta = event.choices[0].delta
-                if delta and getattr(delta, "content", None):
-                    reply += delta.content
-                    if len(reply) % 30 == 0:
-                        await bot.edit_message_text(chat_id=msg.chat.id, message_id=msg.message_id, text=reply)
 
-        await bot.edit_message_text(chat_id=msg.chat.id, message_id=msg.message_id, text=reply)
-        return
-
-    # BACK HOME
-    if data == "back_home":
-        await cmd_start(cb.message)
-        return
-
-    # OPEN PLANS
-    if data == "open_plans":
-        await cb.message.edit_text("✨ Upgrade Plans", reply_markup=upgrade_keyboard())
-        return
-
-
-# ==========================================
-# FREE TEXT CHAT — ALWAYS ALLOWED
-# ==========================================
-@dp.message()
-async def free_chat(message: types.Message):
-    uid = message.from_user.id
-    text = message.text
-
-    await save_user(uid, message.from_user.username)
-    user = await get_user(uid)
-    plan = user["plan"]
-
-    msg = await message.answer("🤖 Thinking…")
-
-    reply = ""
-    stream = await openai_client.chat.completions.create(
-        model=model_for_plan(plan),
-        messages=[{"role": "user", "content": text}],
-        stream=True
+@dp.message(Command("questions"))
+async def questions(message: types.Message):
+    await message.answer(
+        "Choose a category:",
+        reply_markup=main_menu()
     )
 
-    async for event in stream:
-        if hasattr(event, "choices") and event.choices:
-            delta = event.choices[0].delta
-            if delta and getattr(delta, "content", None):
-                reply += delta.content
-                if len(reply) % 30 == 0:
-                    await bot.edit_message_text(chat_id=msg.chat.id, message_id=msg.message_id, text=reply)
+# ----------------------------
+# HANDLE CATEGORY BUTTONS
+# ----------------------------
 
-    await bot.edit_message_text(chat_id=msg.chat.id, message_id=msg.message_id, text=reply)
+@dp.callback_query(F.data.startswith("cat_"))
+async def category_handler(callback: types.CallbackQuery):
+    user = await get_user(callback.from_user.id)
+
+    # Only 5 free smart questions EVER
+    if user["plan"] == "free" and user["free_used"] >= 5:
+        await callback.message.answer(
+            "⚠️ You’ve used all 5 free Smart Questions.\n\n"
+            "Typed questions are always free.\n"
+            "Upgrade to unlock unlimited Smart Questions.",
+            reply_markup=upgrade_menu()
+        )
+        return
+
+    # Count usage
+    if user["plan"] == "free":
+        await increase_free_count(callback.from_user.id)
+
+    category = callback.data.replace("cat_", "").capitalize()
+    await callback.message.answer(
+        f"🧠 **{category} Smart Questions:**\n\n"
+        "Type your question below 👇"
+    )
 
 
-# ==========================================
-# WEBHOOK & SERVER
-# ==========================================
-async def on_startup(app):
-    global db
-    db = await asyncpg.create_pool(DATABASE_URL)
-    print("🔌 Connected to PostgreSQL.")
+# ----------------------------
+# UPGRADE MENU
+# ----------------------------
 
-    await run_migrations()
+@dp.callback_query(F.data == "upgrade")
+async def upgrade_handler(callback: types.CallbackQuery):
+    await callback.message.answer(
+        "🔥 **Upgrade Your Learning Power**\n\n"
+        "Unlock unlimited Smart Questions and premium insights.",
+        reply_markup=upgrade_menu()
+    )
 
+
+@dp.callback_query(F.data == "back_to_menu")
+async def back_menu(callback: types.CallbackQuery):
+    await callback.message.answer("Back to main menu:", reply_markup=main_menu())
+
+
+# ----------------------------
+# PAYMENT HANDLERS
+# ----------------------------
+
+async def send_invoice(callback, invoice_id):
+    link = f"https://t.me/CryptoBot?start={invoice_id}"
+    await callback.message.answer(
+        "💳 Complete your payment:",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="Pay Now", url=link)]
+        ])
+    )
+
+
+@dp.callback_query(F.data == "pay_smart_month")
+async def pay1(callback: types.CallbackQuery):
+    await send_invoice(callback, SMART_MONTHLY)
+
+
+@dp.callback_query(F.data == "pay_genius_month")
+async def pay2(callback: types.CallbackQuery):
+    await send_invoice(callback, GENIUS_MONTHLY)
+
+
+@dp.callback_query(F.data == "pay_smart_year")
+async def pay3(callback: types.CallbackQuery):
+    await send_invoice(callback, SMART_YEARLY)
+
+
+@dp.callback_query(F.data == "pay_genius_year")
+async def pay4(callback: types.CallbackQuery):
+    await send_invoice(callback, GENIUS_YEARLY)
+
+
+# ------------------------------------------------
+# WEBHOOK HANDLER (Telegram → FastAPI → Bot)
+# ------------------------------------------------
+@app.post("/webhook")
+async def telegram_webhook(request: Request):
+    update = await request.json()
+    await dp.feed_webhook_update(bot, update)
+    return JSONResponse({"ok": True})
+
+
+# ----------------------------
+# FASTAPI ROOT
+# ----------------------------
+@app.get("/")
+async def home():
+    return {"status": "ok"}
+
+
+# ----------------------------
+# STARTUP
+# ----------------------------
+@app.on_event("startup")
+async def on_startup():
+    await ensure_tables()
     await bot.set_webhook(WEBHOOK_URL)
-    print("Webhook set →", WEBHOOK_URL)
 
-
-async def on_shutdown(app):
-    await bot.delete_webhook()
-    print("Webhook removed.")
-
-
-async def health(request):
-    return web.Response(text="OK")
-
-
-def main():
-    app = web.Application()
-    app.router.add_get("/", health)
-
-    from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-    SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="/webhook")
-
-    app.on_startup.append(on_startup)
-    app.on_shutdown.append(on_shutdown)
-
-    setup_application(app, dp, bot=bot)
-
-    web.run_app(app, host="0.0.0.0", port=PORT)
-
-
-if __name__ == "__main__":
-    main()
